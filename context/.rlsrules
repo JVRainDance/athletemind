@@ -1,0 +1,40 @@
+# Supabase RLS Rules
+- When creating RLS policies, NEVER reference the same table within its own policy
+- Always use auth.uid() for user-based policies, not table lookups
+- For profiles table policies, use: auth.uid() = user_id (not lookups to profiles table)
+- Test RLS policies before committing migrations
+- Always check for infinite recursion in RLS policies
+
+# PL/pgSQL Function Rules
+- ALWAYS use explicit table aliases in functions to avoid ambiguous column references
+- When referencing table columns, use qualified names: table_alias.column_name
+- Common ambiguous references: 'id', 'created_at', 'updated_at', 'status'
+- Example: Use `a.id` instead of `id` when `id` could refer to variable or column
+- Test functions with sample data to catch ambiguous reference errors early
+- ALWAYS cast enum types to text in function return statements
+- Common enum casting needed: session_type::TEXT, status::TEXT, theme::TEXT
+- Function return types must exactly match the actual returned data types
+
+# Database Migrations
+- Before creating new migrations, review existing ones for similar patterns
+- Always verify RLS policy logic doesn't create circular references
+- Use simple auth.uid() comparisons rather than complex joins in policies
+
+# Error Patterns to Avoid
+- Don't use: (SELECT user_id FROM profiles WHERE id = auth.uid()) 
+- Use instead: auth.uid() = user_id
+- Don't reference the same table in its own RLS policy
+- Don't use unqualified column names in PL/pgSQL functions
+- Avoid: `WHERE id = p_id` (ambiguous - could be variable or column)
+- Use instead: `WHERE t.id = p_id` (explicit table alias)
+- Don't return enum types directly in functions expecting TEXT
+- Avoid: `SELECT session_type` when function expects TEXT
+- Use instead: `SELECT session_type::TEXT` (explicit casting)
+
+# Code Review Checklist
+- Check for infinite recursion in RLS policies
+- Verify migrations don't duplicate existing functionality
+- Test policies with sample data before deployment
+- Verify all table references in functions use explicit aliases
+- Check for ambiguous column references in PL/pgSQL functions
+- Test functions with sample data to catch runtime errors

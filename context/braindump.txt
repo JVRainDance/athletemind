@@ -1,0 +1,178 @@
+“I’ve given ChatGPT my full, detailed vision for AthleteMind. You can now ask it to summarise, clarify, or reformat any part of it for development, design, or marketing — so we keep all the context and nothing gets lost.”
+
+Here are three flexible prompts you could use:
+“Summarise Jaz’s brain dump into a clear, prioritised feature list for the MVP.”
+
+
+“Create a visual flow of the athlete’s journey from goal setting to stats screen based on the brain dump.”
+
+
+“List all notifications and alerts from the brain dump, with triggers and who should receive them.”
+
+
+AthleteMind – Full Brain Dump (Exact Copy)
+The app will be called AthleteMind (for now, we might change it). The working tag line is Show up. Reflect. Build momentum.
+It's an athlete journalling app. They will set their training schedule and be attached to a coach and a parent/guardian. The coach or athlete will be able to set and adjust the training schedule. For each scheduled training session, a journal entry is required.
+Before each session the athlete will set 3 daily training goals, and will answer two questions with 1-5 ratings. The questions are 'What is your energy level coming into today's training?' and 'What is your mindset coming into today's training?' These questions are answered before the session starts. The rating scale can change or be created. For example, the ratings can be set to the theme 'wild animals' and the ratings could be sloth, meerkat, polar bear, eagle, lion. Or 'gaming' and the ratings could be Lost in the woods, Low on hearts, Shielded up, Sword in hand, Triforce ready. Things like that, to make it more gamified. This would be chosen in the settings page.
+You can set your daily training goals up to 7 days in advance. Setting goals in advance will mean that when you click 'Start Pre-Training Check In' for the session, the goals will appear. You can edit them if needed. There is space for 3 goals, but only 1 is required to move on. It should look like you have to do three, it just doesn't block you hitting 'start training' if you don't enter all 3. On this page where you set your goals in advance, you'll be able to see how many of the goals you have set. So, on the button or block that you click to set goals for the training session, it will display 1, 2, 3. These will be grey, but when you have set the goal it will change colour. That way you can see, at a glance, if you have set the goals. You can also start the training session from that time.
+On the home page, it will show you a small countdown to your next session time. You can't start the body and mind check in until one hour before the session. Goals can be set in advance through the set goals up to 7 days in advance.
+The training day, date and time will be clearly displayed whenever you are on a journal or goal setting page. Make sure the day is written in full.
+From 3 months prior, you can schedule an absence, cancel a session, or add a one off session. This could be something like State Development Squad, or a Strength Training Session. The regular schedule that you set in the setup is repeated weekly. If you want to change the schedule, it will ask you from what date you want the new schedule to last. It will also recognise any additional sessions that have been added in, and will ask if you want to keep or cancel them individually. This ensures that the training schedule is correct each week.
+When you cancel a session or submit an absence, you will not be required to complete a journal for that session. You do have to say why you are absent. These should be the choices - Unwell, Injured, Clash with School Event/Camp, Clash with Social Event, Clash with Family Event/Holiday, Training Cancelled, Other. If 'training cancelled', this doesn't count as an absence. When you review your training history, you will see your attendance rate, and a pie graph showing the reasons you have missed. Cancelled training sessions are just that - they do not require a journal entry, and they do not count as a missed session. They are simply deleted. If you change your schedule and have a scheduled absence in the future, it will ask you if you want to keep that absence.
+If you schedule an additional training, or a competition/match, you can click 'session cancelled' for the session that it is being replaced. You can also enter a competition/match. This will require a journal entry, but it will be different to the normal journal. This will be more around focus and goals, plus a reflection. You can also record scores, times, results, stats, etc.
+In the settings you will have the option to add rewards. If you turn this on, each session you set something that you will be rewarded for. This could be effort in a particular part of training, a new skill, or a mindset, etc. If this is turned on, you will have this as an addition in the pre-training check in, and you will have a chance to tick it off in your training reflection. This will earn you a star. In the settings, you can add how many stars you need, and what your reward will be when you reach that many stars. This will show as a progress bar, with the reward clearly displayed, to help build motivation. The parent will be able to set this, as well as the coach. The coach can then set something like 'when the whole squad reaches 50 stars, we'll have a pizza party!'. The parent can set something like 'when you reach 15 stars, you'll get a new pair of rollerblades'. That way the coach and the parent maintain control. The coach can turn it on for the whole squad. The parent/athlete can turn it on for the individual athlete. Either way, the question is only asked of the athlete once per session, and they only earn one star. It counts for both. The individual reward and the squad/team reward are listed separately.
+When you click the pre-training check in start button, it will take you to a new screen, that will ask you to set your goals (they will be pre-populated if you've already set them), then the reward question (if that is turned on), and the two rating questions will come up. When they are all answered (a minimum of one goal), the athlete will hit 'start training' - and the training screen will come up. This will stay there while the session is going, unless they go back. They can come back to it at any time until their reflection is completed.
+The in training page will come up. If the session hasn't started, it will have a countdown until the session starts at the top. You could have an addition of a rotating motivational quote, helpful tip, interesting fact or something like that. The goals set will be displayed, with a checkbox to tick if the goal is achieved. If they check off the goal, a confetti burst (or something related to the theme they have selected) will pop up, to make it fun. Or a 'congrats' or 'yay' or something different all the time, to make it exciting to click.
+Then there will be a place to add training notes, and categorise them. New categories can be set from this page, or in the settings. Examples for men's gymnastics would be something like - High Bar, Vault, Floor, P-Bars, Pommel Horse, Still Rings. Then there might be generic ones for 'mindset' 'strength & conditioning' 'fitness' 'coaches wisdom' - or particular skills etc. There shouldn't be a category limit, and they should be able to add them into multiple categories easily. These notes will save, and you'll be able to click a button to bring up all the notes from that session. On another page, you'll be able to view, sort, summarise, report on, etc.
+When hitting start training, from the pre-training check in page, the button should say 'I'm ready to train!'
+In the training page, there will be a progress bar across the top of the screen, that shows the time left in the session. This shouldn't be too overwhelming, it's just a guide. We don't want them to watch and countdown here, it's just so they know how far through the session they are.
+The training page will also list the thing they set for their reward, if that is turned on. If they hit yes here, this will preload the next page with that. When they click the checkbox a bunch of stars should appear, or a message about how they are tracking towards the set rewards.
+When they are finished (this can be at any time, not just the end of the session, as they may finish early etc, and we want that to be easy for them), they click 'complete reflection'. This takes them to a new page.
+This page will have a 'yay, you did it' message at the top. The goals will be listed. If they have already been checked off, this will carry through. They can be checked off from this page. The checkboxes will change to 'Got it' 'Not quite' or 'No'. So from the first page, they can just check one box, and that will say they got it. From the reflection page, they will have three options.
+They then have four questions to answer about today's session:
+What went well? (What went well during training today?)
+What didn't go well? (What didn't go well, or could be improved?)
+What do I need to do different next time? (What will you do differently next time to help you move forwards)
+What am I most proud of today? (What are you most proud of from today's training?)
+Then, if they had set the reward, it will list what they had set, and ask if they achieved it and earnt a star. This will be a yes/no. If filled on the page before, it will be here already. Then they will answer (1-5 rating, set from their theme) - Overall training was...
+Then they will hit 'Complete Journal Entry'.
+When they hit complete Journal, they will be taken to a stats screen. This is where the gamification comes in, and we can really play with what gets displayed, and how it looks. Having their completion rate and streaks, having the number of goals hit, progress towards goals. It could show their completion rates against their squad members or team mates. Potentially this could have an AI integration, to summarise their session (adding in the notes they add during training - so if they want better reporting here, they could use the note function more).
+It will also allow them to see their training progress, and potentially allow them to view their longer term goals (which would be set through the settings), and let them make notes or track towards that larger goal. This would be an optional click in, probably something that could always be available, but there is a suggestion every 3 months to revisit their longer term goals, and the milestones they have set to reaching them.
+From there the athlete would go back to their dashboard, which would list their upcoming training sessions, let them access any of the areas like setting goals for upcoming sessions, viewing their training history, logging an absence, adding a competition, etc. This page could also display the number of sessions left till a competition.
+This is the full version of the athlete log in. Next, we'll move onto the coach and parent experience.
+The Coach. The Coach is attached to a club (above them), and a squad (below them, set by the club), and the athletes in the squad.
+Their dashboard allows them to see the stats of their athletes, and alerts them to anything they need to follow up on - for example, if an athlete says they are having a low mood or bad training for a few sessions in a row, the coach should be notified. If an athlete consistently isn't meeting their goals, or consistently isn't submitting their journal entries, they will be notified. They will also be notified of submitted absences. They will get alerts as they choose, for how close their squad is to meeting their squad goal.
+From the dashboard, they can go to the training screen. When a session is in progress, all athletes in the squad will be able to select their name and open their own pre-training, training and reflection pages. The athlete would have to enter a pin (set in their account) to access it, so that others can't fill it out. The athlete can use the club device to complete the entry if they don't have their own device. They can also click their profile to view their goals, check them off, or add notes.
+Under their profile, there will be a button for the coach to click to add training notes. These notes will be stored with the athletes notes and categorised using their own filing system (coach can add additional categories), and the athlete can view these later, and will form part of the reporting.
+To get out of the training page, the coach has to enter a code to go back to the main screen. This prevents athletes from being able to go back and access other information that is private. For the coach to enter athlete notes, they would also have to enter this code.
+From the dashboard, the coach can view each of their athlete's profiles, where they have visibility over the notes and goals that the athlete has entered. The coach should be able to comment, but they shouldn't be able to change what the athlete has entered. Should the parent be able to see comments made? This is something I'm unsure about, thinking about child protection - they should be able to view them. Thinking about the athlete not feeling like their parent has too much influence (if they are overbearing), then perhaps not. Maybe the trade off is the coach can comment on a session overall, but they can't comment on individual goals and sections of their check in. This means that the parent will see the coach's comment as it relates to the completed entries, but won't be able to dig down into the athlete's insights without their permission.
+This could be another area for AI summary - having the coach get a summary of each athlete's last week, month, quarter, year - either all together, or a chosen period. This would allow them to be able to get good insight into their overall trends and wellbeing during that time.
+The coach should also be able to set goals for the athlete, and then these the coach can check off. These might be things like competition results, new skills, strength goals, etc. The athlete would be able to see, but not edit these.
+The athlete should also be able to input information into their forms by typing in, by using voice to text (maybe with an AI clean up), or by taking a photo of their written journal and goals, and having it keep the photo, and convert the text into the forms.
+The coach should be able to gather insights, and keep notes at an athlete and squad level. The coach should also be prompted to do their own journal - this would be a great way to keep the coach accountable, and help them store their thoughts and improve their coaching. This area needs to be thought about more.
+The Parent/Guardian is for oversight and accountability, but it is not a platform for a parent to become a coach. This should be very clear from the outset, and we should have educational information for the parent, helping them to be a better sports parent. This is important.
+The parent should be able to view individual reflections, but only this information:
+Goals, and whether they were achieved
+Mindset and energy going into training, and overall training rating
+What the athlete is most proud of
+Whether they earned a star (if turned on), and how close the athlete is to their reward.
+The parent should get a weekly summary, that gives them the same information, but for the last week. This is what the parent should pay most attention to. It will give them information about how the athlete is tracking overtime, from a motivation and mindset point of view, and give them talking points. They should see the long term goals and milestones. The only thing that they don't really need to see is the what went well, what didn't, what do I need to do different. This should be researched further first, to strike a balance between informed and involved.
+Alerts should be given if they are not completing their journal, or if they have multiple negative ratings. This could be a later alert than what the coach gets though.
+The parent should be able to see the coach's comments, and acknowledge that they have seen it with emojis. Potentially they could comment, though this may create a lot of work for the coach, so they would have to be able to turn that function on if they wanted to.
+
+The parent will also be able to give comments on their progress towards their reward if they want, and when they give the reward they should be able to check it off.
+
+It would be cool if the athletes could add photos to the notes section as well. Child protection to be considered.
+NOTES:
+NM note - Competition logic - same style of journaling for comp days and 
+
+Use of gen AI - reword the athletes writing to be a goal?
+
+What do parents want? They want to know the coach has a plan for the child and their plan is thorough
+Summary - of the week
+Alerts on what athletes may say
+Parent oversight 
+
+Rules list - who sees what?
+
+Coach insights 
+
+Coach can set overarching goals not daily goals - 
+
+Day to day goals are athlete owned
+
+
+
+
+
+This is some output from ChatGPT. It didn’t get everything right, but it was close. I’ve gone through and adjusted some of it, but what is above is right if there is a discrepancy.
+
+Structured Product Requirements
+1. Purpose & Vision
+AthleteMind is a training journaling app that builds accountability, self-awareness, and momentum for athletes through structured goal setting, reflection, and feedback loops involving coaches and parents.
+Tagline: Show up. Reflect. Build momentum.
+2. Roles & Permissions
+Role
+Can See
+Can Do
+Cannot Do
+Athlete
+Own schedule, goals, journals, notes, stats, coach-set goals
+Set/edit schedule, add journals, add notes, set rewards
+Edit coach goals
+Coach
+Athlete stats, journals, notes, goals
+Add notes, set goals, comment, review
+Edit athlete entries
+Parent
+Athlete summary data, coach comments, reward progress
+Acknowledge comments, view weekly summaries
+Coach athletes, view detailed reflection fields
+
+3. Core User Flows
+Athlete: Set schedule →Set goals in advance →  Pre-training check-in → In-training → Reflection → Stats → Dashboard.
+Coach: Dashboard → Athlete profiles → Training session control → Notes/goals → Squad/athlete insights.
+Parent: View summaries → Track reward progress → Weekly reports.
+4. Detailed Features (sample)
+Pre-Training Check-In
+Purpose: Prepare athlete for training.
+Trigger: 1 hour before session. (count down to training time to appear)
+Steps: Goals → Reward criteria → Ratings.
+Logic: Goals pre-fill if set in advance.
+Design: Prominent date/day, progress indicators.
+Training Page
+Purpose: Displays during training, allowing athlete to see and check goals, and add notes.
+Trigger: When ‘ready to train’ button clicked from pre-training check-in
+Steps: See training progress bar at top. See goals, check off. Add notes & categorise. See and check off reward goal.
+Logic: .
+Design: Clean with minimal distractions, except if hitting a goal.
+
+Reflection Page
+Purpose: Capture post-session insights.
+Steps: Review/check goals, 4 reflection questions, reward confirmation, overall rating.
+Logic: Responses stored per session.
+Design: Encouraging tone, clear form layout.
+Stats Screen
+Purpose: Gamify engagement and show progress.
+Content: Completion rate, streaks, goal success rate, squad comparisons, AI summaries.
+Design: Visual graphs, progress bars.
+5. Gamification & AI
+Rewards/stars system.
+Streaks and completion badges.
+Squad performance comparisons.
+AI-generated session and trend summaries.
+6. Notifications & Alerts
+Alert
+Trigger
+Recipient
+Low mood streak
+3+ low ratings
+Coach
+Missed journal
+No entry by end of day
+Athlete, Parent
+Squad reward close
+Within 10 stars
+Coach
+
+7. Edge Cases & Rules
+Absence/cancellation logic.
+Competitions replacing sessions.
+Schedule changes and future absences.
+Role-based data visibility.
+Shared device/PIN entry security.
+8. Open Questions
+Parent visibility of detailed coach comments.
+Parent ability to comment.
+Advance absence scheduling limits.
+9. Future Features
+Voice-to-text AI cleanup.
+Photo-to-text journal entry.
+Parent educational modules.
+AI personalised training prompts.
+10. References
+Comparable journaling/gamification apps.
+Brand/style preferences.
+
+
+

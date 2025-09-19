@@ -1,0 +1,875 @@
+<<<<<<< HEAD
+Request for Quote – AthleteMind SaaS Development
+Prepared by: Jasmin Meaker
+ Date: 08/08/2025
+
+1. Project Overview
+AthleteMind is a role-based SaaS platform for athletes, coaches, and parents/guardians to set goals, reflect on training, track performance, and engage in motivational gamification. The system will be subscription-based, cloud-hosted, and scalable for multi-club, multi-squad deployment.
+The application will have three distinct roles with different permissions and views:
+Athlete
+
+
+Coach
+
+
+Parent/Guardian
+
+
+The full functional specification is attached below.
+
+2. Scope of Work
+Please provide a detailed quote for the design, development, and deployment of AthleteMind according to the attached functional specification, including:
+MVP build – All core features for each role as outlined.
+
+
+Hosting & deployment – SaaS architecture setup, secure authentication, and multi-tenant support.
+
+
+Admin functionality – For role assignment, club/squad setup, and subscription management.
+
+
+Optional features – AI integration, advanced reporting, white-labelling.
+
+
+
+3. Deliverables
+Working SaaS application accessible via web and mobile (responsive web or native wrapper).
+
+
+Secure authentication and role-based access control.
+
+
+Fully functioning MVP with:
+
+
+Scheduling
+
+
+Pre-training check-in
+
+
+In-training page with notes and categories
+
+
+Reflection
+
+
+Stats & gamification
+
+
+Notifications & alerts
+
+
+Admin dashboard for platform management.
+
+
+Documentation and basic training for admin use.
+
+
+
+4. Technical Requirements
+Backend: [Preferred if applicable, e.g., Node.js, Django]
+
+
+Frontend: [Preferred if applicable, e.g., React Native, Flutter]
+
+
+Database: Relational DB (PostgreSQL preferred)
+
+
+Hosting: AWS, GCP, or Azure
+
+
+APIs: Integration for AI summaries (e.g., OpenAI API)
+
+
+File storage: Secure cloud for note images
+
+
+Notifications: Push + email
+
+
+
+5. Quote Format
+Please provide:
+MVP Build Cost (itemised by major feature group)
+
+
+Optional Feature Cost (AI integration, advanced reporting, white-labelling)
+
+
+Hosting & Maintenance Cost (monthly estimate)
+
+
+Timeline – estimated start, key milestones, and delivery date
+
+
+Team Structure – roles and responsibilities
+
+
+Technology Stack – proposed tech for frontend, backend, database, and hosting
+
+
+Previous Experience – relevant SaaS or sports/education app projects
+
+
+
+6. Evaluation Criteria
+We will assess proposals based on:
+Cost and value for money
+
+
+Timeline feasibility
+
+
+Relevant experience
+
+
+Technical approach and scalability
+
+
+Ongoing support and maintenance capability
+
+
+
+7. Submission Instructions
+Submit proposals to: [Your email/contact info]
+
+
+Submission deadline: [Date]
+
+
+Include “AthleteMind RFQ Submission” in subject line.
+
+
+
+AthleteMind – Functional Specification for Developer Quote
+Overview
+AthleteMind is a role-based SaaS web/mobile application for athletes, coaches, and parents/guardians to support goal setting, training reflections, performance tracking, and motivational gamification. The system includes individual and shared rewards, alerts, and role-specific data visibility, with secure access control.
+The platform will support:
+Multi-device access (mobile-first, responsive design; potential native mobile app via wrapper or cross-platform framework).
+
+
+Multi-role accounts with defined permissions and data access boundaries.
+
+
+Customisable themes and gamified rating systems.
+
+
+Scalable cloud-based backend suitable for multi-club, multi-squad deployment.
+
+
+
+Core Roles & Permissions
+Athlete
+
+
+Create/edit training schedule (with coach override).
+
+
+Complete pre-training check-ins.
+
+
+Record training notes (categorised, unlimited categories).
+
+
+Complete reflections with structured questions.
+
+
+View and track progress, streaks, goals, rewards, and long-term milestones.
+
+
+Schedule absences, cancellations, and add one-off sessions/competitions.
+
+
+Participate in squad-level rewards.
+
+
+Access personal stats, history, and competition countdowns.
+
+
+Coach
+
+
+Linked to a club (above) and a squad (below) with assigned athletes.
+
+
+View athlete stats, trends, and history.
+
+
+Receive alerts (e.g., repeated low mood, missed journals/goals, squad nearing reward).
+
+
+Run in-session check-ins on shared devices (PIN-protected athlete access).
+
+
+Add training notes to athlete profiles (category tagging).
+
+
+Set athlete-specific goals (read-only for athlete).
+
+
+Optional coach journal for self-reflection.
+
+
+Generate AI summaries of athlete progress for selectable date ranges.
+
+
+Parent/Guardian
+
+
+View per-session summaries: goals & achievement, mindset/energy ratings, overall rating, proudest moment, reward progress.
+
+
+Receive weekly summary reports with trends.
+
+
+View long-term goals/milestones.
+
+
+Receive alerts for missed journals or repeated low ratings (delayed compared to coach).
+
+
+View coach comments; acknowledge with emoji; optional commenting (if enabled by coach).
+
+
+Access educational content on positive sports parenting.
+
+
+
+Key Functional Areas
+Scheduling
+Weekly recurring schedule setup.
+
+
+Change schedule from a specified date forward.
+
+
+Add one-off sessions or competitions.
+
+
+Record absences with predefined reasons.
+
+
+Cancelled training sessions are removed (not counted as absences).
+
+
+Handle schedule changes with prompts for existing future absences.
+
+
+Pre-Training Check-In
+Available within 1 hour of session start.
+
+
+Up to 7 days advance goal-setting (pre-populated on check-in).
+
+
+Minimum 1 goal required; UI encourages 3 goals.
+
+
+Reward criteria entry (if enabled).
+
+
+2 themed rating questions (customisable theme sets).
+
+
+Start Training button transitions to in-session view.
+
+
+In-Training
+Countdown to session start if early.
+
+
+Rotating motivational quote/tip/fact display.
+
+
+Goal list with achievement checkboxes (triggering confetti/theme animation).
+
+
+Display reward target (if enabled) with visual progress.
+
+
+Notes functionality: Athlete can add new notes during training, view previously saved notes from any session, and assign categories to notes (including creating new categories on the fly).
+
+
+Reflection
+Encouraging completion message.
+
+
+Goal completion review with 3 options: Got it / Not quite / No.
+
+
+Four free-text reflection prompts:
+
+
+What went well?
+
+
+What didn’t go well or could be improved?
+
+
+What will you do differently next time?
+
+
+What are you most proud of today?
+
+
+Reward confirmation (yes/no).
+
+
+Overall training rating (theme-based scale).
+
+
+Journal entry completion triggers stats screen.
+
+
+Stats & Gamification
+Completion rate & streaks.
+
+
+Goal achievement stats.
+
+
+Progress toward individual and squad rewards.
+
+
+Squad performance comparisons.
+
+
+AI-generated summaries.
+
+
+Long-term goal tracking with 3-monthly review prompts.
+
+
+Notes & Categories
+Add notes during or after training.
+
+
+Categorise notes; unlimited categories.
+
+
+Categories manageable in settings or on note creation.
+
+
+View, sort, and report on notes by category or session.
+
+
+Notifications & Alerts
+Configurable per role.
+
+
+Predefined triggers:
+
+
+3+ low mood sessions → Coach alert.
+
+
+Missed journal entry → Athlete & Parent alert.
+
+
+Squad nearing reward → Coach alert.
+
+
+Parent alerts delayed relative to coach alerts.
+
+
+Security
+Role-based access control.
+
+
+PIN entry for shared device athlete access.
+
+
+Coach PIN required for exiting in-session view or adding notes.
+
+
+
+Technical Requirements (SaaS Model)
+Backend: Scalable cloud hosting (AWS, GCP, Azure) with multi-tenant architecture for clubs.
+
+
+Frontend: Cross-platform framework (e.g., React Native or Flutter for mobile; React or Vue for web).
+
+
+Database: Relational DB (e.g., PostgreSQL) for structured data; optional NoSQL for notes/media.
+
+
+Authentication: OAuth2 / JWT-based session management.
+
+
+File Storage: Secure cloud storage for media (images of written notes).
+
+
+AI Features: Integrate summarisation and text cleanup via API (e.g., OpenAI API).
+
+
+Analytics: Built-in tracking for usage, streaks, goals.
+
+
+Notifications: Push notifications + email alerts.
+
+
+
+Deployment
+SaaS subscription model (per user/club pricing tiers).
+
+
+Admin dashboard for account creation, role assignment, club/squad setup.
+
+
+Potential white-label option for clubs.
+
+
+
+Quote Scope
+The developer should provide:
+MVP Build Cost – Core features for all three roles, essential scheduling, journals, rewards, stats, and alerts.
+
+
+Timeline – Estimated delivery phases (MVP, Beta, V1 Launch).
+
+
+Hosting & Maintenance – Monthly SaaS operating costs and scaling plan.
+
+
+Optional Features Cost – AI features, advanced reporting, white-labelling.
+
+=======
+Request for Quote – AthleteMind SaaS Development
+Prepared by: Jasmin Meaker
+ Date: 08/08/2025
+
+1. Project Overview
+AthleteMind is a role-based SaaS platform for athletes, coaches, and parents/guardians to set goals, reflect on training, track performance, and engage in motivational gamification. The system will be subscription-based, cloud-hosted, and scalable for multi-club, multi-squad deployment.
+The application will have three distinct roles with different permissions and views:
+Athlete
+
+
+Coach
+
+
+Parent/Guardian
+
+
+The full functional specification is attached below.
+
+2. Scope of Work
+Please provide a detailed quote for the design, development, and deployment of AthleteMind according to the attached functional specification, including:
+MVP build – All core features for each role as outlined.
+
+
+Hosting & deployment – SaaS architecture setup, secure authentication, and multi-tenant support.
+
+
+Admin functionality – For role assignment, club/squad setup, and subscription management.
+
+
+Optional features – AI integration, advanced reporting, white-labelling.
+
+
+
+3. Deliverables
+Working SaaS application accessible via web and mobile (responsive web or native wrapper).
+
+
+Secure authentication and role-based access control.
+
+
+Fully functioning MVP with:
+
+
+Scheduling
+
+
+Pre-training check-in
+
+
+In-training page with notes and categories
+
+
+Reflection
+
+
+Stats & gamification
+
+
+Notifications & alerts
+
+
+Admin dashboard for platform management.
+
+
+Documentation and basic training for admin use.
+
+
+
+4. Technical Requirements
+Backend: [Preferred if applicable, e.g., Node.js, Django]
+
+
+Frontend: [Preferred if applicable, e.g., React Native, Flutter]
+
+
+Database: Relational DB (PostgreSQL preferred)
+
+
+Hosting: AWS, GCP, or Azure
+
+
+APIs: Integration for AI summaries (e.g., OpenAI API)
+
+
+File storage: Secure cloud for note images
+
+
+Notifications: Push + email
+
+
+
+5. Quote Format
+Please provide:
+MVP Build Cost (itemised by major feature group)
+
+
+Optional Feature Cost (AI integration, advanced reporting, white-labelling)
+
+
+Hosting & Maintenance Cost (monthly estimate)
+
+
+Timeline – estimated start, key milestones, and delivery date
+
+
+Team Structure – roles and responsibilities
+
+
+Technology Stack – proposed tech for frontend, backend, database, and hosting
+
+
+Previous Experience – relevant SaaS or sports/education app projects
+
+
+
+6. Evaluation Criteria
+We will assess proposals based on:
+Cost and value for money
+
+
+Timeline feasibility
+
+
+Relevant experience
+
+
+Technical approach and scalability
+
+
+Ongoing support and maintenance capability
+
+
+
+7. Submission Instructions
+Submit proposals to: [Your email/contact info]
+
+
+Submission deadline: [Date]
+
+
+Include “AthleteMind RFQ Submission” in subject line.
+
+
+
+AthleteMind – Functional Specification for Developer Quote
+Overview
+AthleteMind is a role-based SaaS web/mobile application for athletes, coaches, and parents/guardians to support goal setting, training reflections, performance tracking, and motivational gamification. The system includes individual and shared rewards, alerts, and role-specific data visibility, with secure access control.
+The platform will support:
+Multi-device access (mobile-first, responsive design; potential native mobile app via wrapper or cross-platform framework).
+
+
+Multi-role accounts with defined permissions and data access boundaries.
+
+
+Customisable themes and gamified rating systems.
+
+
+Scalable cloud-based backend suitable for multi-club, multi-squad deployment.
+
+
+
+Core Roles & Permissions
+Athlete
+
+
+Create/edit training schedule (with coach override).
+
+
+Complete pre-training check-ins.
+
+
+Record training notes (categorised, unlimited categories).
+
+
+Complete reflections with structured questions.
+
+
+View and track progress, streaks, goals, rewards, and long-term milestones.
+
+
+Schedule absences, cancellations, and add one-off sessions/competitions.
+
+
+Participate in squad-level rewards.
+
+
+Access personal stats, history, and competition countdowns.
+
+
+Coach
+
+
+Linked to a club (above) and a squad (below) with assigned athletes.
+
+
+View athlete stats, trends, and history.
+
+
+Receive alerts (e.g., repeated low mood, missed journals/goals, squad nearing reward).
+
+
+Run in-session check-ins on shared devices (PIN-protected athlete access).
+
+
+Add training notes to athlete profiles (category tagging).
+
+
+Set athlete-specific goals (read-only for athlete).
+
+
+Optional coach journal for self-reflection.
+
+
+Generate AI summaries of athlete progress for selectable date ranges.
+
+
+Parent/Guardian
+
+
+View per-session summaries: goals & achievement, mindset/energy ratings, overall rating, proudest moment, reward progress.
+
+
+Receive weekly summary reports with trends.
+
+
+View long-term goals/milestones.
+
+
+Receive alerts for missed journals or repeated low ratings (delayed compared to coach).
+
+
+View coach comments; acknowledge with emoji; optional commenting (if enabled by coach).
+
+
+Access educational content on positive sports parenting.
+
+
+
+Key Functional Areas
+Scheduling
+Weekly recurring schedule setup.
+
+
+Change schedule from a specified date forward.
+
+
+Add one-off sessions or competitions.
+
+
+Record absences with predefined reasons.
+
+
+Cancelled training sessions are removed (not counted as absences).
+
+
+Handle schedule changes with prompts for existing future absences.
+
+
+Pre-Training Check-In
+Available within 1 hour of session start.
+
+
+Up to 7 days advance goal-setting (pre-populated on check-in).
+
+
+Minimum 1 goal required; UI encourages 3 goals.
+
+
+Reward criteria entry (if enabled).
+
+
+2 themed rating questions (customisable theme sets).
+
+
+Start Training button transitions to in-session view.
+
+
+In-Training
+Countdown to session start if early.
+
+
+Rotating motivational quote/tip/fact display.
+
+
+Goal list with achievement checkboxes (triggering confetti/theme animation).
+
+
+Display reward target (if enabled) with visual progress.
+
+
+Notes functionality: Athlete can add new notes during training, view previously saved notes from any session, and assign categories to notes (including creating new categories on the fly).
+
+
+Reflection
+Encouraging completion message.
+
+
+Goal completion review with 3 options: Got it / Not quite / No.
+
+
+Four free-text reflection prompts:
+
+
+What went well?
+
+
+What didn’t go well or could be improved?
+
+
+What will you do differently next time?
+
+
+What are you most proud of today?
+
+
+Reward confirmation (yes/no).
+
+
+Overall training rating (theme-based scale).
+
+
+Journal entry completion triggers stats screen.
+
+
+Stats & Gamification
+Completion rate & streaks.
+
+
+Goal achievement stats.
+
+
+Progress toward individual and squad rewards.
+
+
+Squad performance comparisons.
+
+
+AI-generated summaries.
+
+
+Long-term goal tracking with 3-monthly review prompts.
+
+
+Notes & Categories
+Add notes during or after training.
+
+
+Categorise notes; unlimited categories.
+
+
+Categories manageable in settings or on note creation.
+
+
+View, sort, and report on notes by category or session.
+
+
+Notifications & Alerts
+Configurable per role.
+
+
+Predefined triggers:
+
+
+3+ low mood sessions → Coach alert.
+
+
+Missed journal entry → Athlete & Parent alert.
+
+
+Squad nearing reward → Coach alert.
+
+
+Parent alerts delayed relative to coach alerts.
+
+
+Security
+Role-based access control.
+
+
+PIN entry for shared device athlete access.
+
+
+Coach PIN required for exiting in-session view or adding notes.
+
+
+
+Technical Requirements (SaaS Model)
+Backend: Scalable cloud hosting (AWS, GCP, Azure) with multi-tenant architecture for clubs.
+
+
+Frontend: Cross-platform framework (e.g., React Native or Flutter for mobile; React or Vue for web).
+
+
+Database: Relational DB (e.g., PostgreSQL) for structured data; optional NoSQL for notes/media.
+
+
+Authentication: OAuth2 / JWT-based session management.
+
+
+File Storage: Secure cloud storage for media (images of written notes).
+
+
+AI Features: Integrate summarisation and text cleanup via API (e.g., OpenAI API).
+
+
+Analytics: Built-in tracking for usage, streaks, goals.
+
+
+Notifications: Push notifications + email alerts.
+
+
+
+Deployment
+SaaS subscription model (per user/club pricing tiers).
+
+
+Admin dashboard for account creation, role assignment, club/squad setup.
+
+
+Potential white-label option for clubs.
+
+
+
+Quote Scope
+The developer should provide:
+MVP Build Cost – Core features for all three roles, essential scheduling, journals, rewards, stats, and alerts.
+
+
+Timeline – Estimated delivery phases (MVP, Beta, V1 Launch).
+
+
+Hosting & Maintenance – Monthly SaaS operating costs and scaling plan.
+
+
+Optional Features Cost – AI features, advanced reporting, white-labelling.
+
+>>>>>>> 4b05c2a62f49ad20c56d6a64d96d97fedce5baa0
