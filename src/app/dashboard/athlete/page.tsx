@@ -3,10 +3,10 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Calendar, Target, TrendingUp, Clock, CheckCircle, Plus, X, Star, Rocket, BarChart3 } from 'lucide-react'
 import { getFullName } from '@/lib/utils'
-import { getSessionButtonState } from '@/lib/session-utils'
 import AbsenceButton from '@/components/AbsenceButton'
 import ExtraSessionButton from '@/components/ExtraSessionButton'
 import SessionCountdown from '@/components/SessionCountdown'
+import SessionButton from '@/components/SessionButton'
 
 export default async function AthleteDashboard() {
   const supabase = createClient()
@@ -40,25 +40,17 @@ export default async function AthleteDashboard() {
     .limit(1)
     .single()
 
-  // Get check-in for next session if it exists
-  let nextSessionCheckin = null
-  if (nextSession) {
-    const { data: checkinData, error: checkinError } = await supabase
-      .from('pre_training_checkins')
-      .select('*')
-      .eq('session_id', nextSession.id)
-      .maybeSingle()
-    
-    // Debug logging
-    console.log('Dashboard debug:', {
-      sessionId: nextSession.id,
-      sessionStatus: nextSession.status,
-      checkinData,
-      checkinError
-    })
-    
-    nextSessionCheckin = checkinData
-  }
+          // Get check-in for next session if it exists
+          let nextSessionCheckin = null
+          if (nextSession) {
+            const { data: checkinData, error: checkinError } = await supabase
+              .from('pre_training_checkins')
+              .select('*')
+              .eq('session_id', nextSession.id)
+              .maybeSingle()
+            
+            nextSessionCheckin = checkinData
+          }
 
   return (
     <div className="space-y-6">
@@ -97,34 +89,10 @@ export default async function AthleteDashboard() {
                 />
               </div>
               
-              {(() => {
-                const buttonState = getSessionButtonState(nextSession, nextSessionCheckin)
-                return (
-                  <div className="flex justify-center">
-                    {buttonState.disabled ? (
-                      <button
-                        disabled
-                        className="inline-flex items-center px-3 py-2 sm:px-4 sm:py-2 border border-transparent text-sm font-medium rounded-md shadow-sm bg-gray-400 text-gray-200 cursor-not-allowed"
-                      >
-                        <CheckCircle className="w-4 h-4 mr-2" />
-                        <Rocket className="w-4 h-4 mr-2" />
-                        <span className="hidden sm:inline">{buttonState.text}</span>
-                        <span className="sm:hidden">Start</span>
-                      </button>
-                    ) : (
-                      <Link
-                        href={buttonState.href}
-                        className="inline-flex items-center px-3 py-2 sm:px-4 sm:py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
-                      >
-                        <CheckCircle className="w-4 h-4 mr-2" />
-                        <Rocket className="w-4 h-4 mr-2" />
-                        <span className="hidden sm:inline">{buttonState.text}</span>
-                        <span className="sm:hidden">Start</span>
-                      </Link>
-                    )}
-                  </div>
-                )
-              })()}
+              <SessionButton 
+                session={nextSession} 
+                checkin={nextSessionCheckin} 
+              />
             </div>
           ) : (
             <p className="text-gray-500">No upcoming training sessions scheduled</p>
