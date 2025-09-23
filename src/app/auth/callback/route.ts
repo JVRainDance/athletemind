@@ -28,8 +28,26 @@ export async function GET(request: NextRequest) {
 
     const { data, error } = await supabase.auth.exchangeCodeForSession(code)
     if (!error && data.user) {
-      // Redirect to login page - the auth state change listener will handle profile creation
-      return NextResponse.redirect(`${origin}/auth/login`)
+      // Check if profile exists (should be created by trigger, but handle edge cases)
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', data.user.id)
+        .single()
+
+      if (profile) {
+        // Profile exists, redirect based on role
+        let redirectPath = '/dashboard'
+        if (profile.role === 'athlete') {
+          redirectPath = '/dashboard/athlete'
+        } else if (profile.role === 'coach') {
+          redirectPath = '/dashboard/coach'
+        }
+        return NextResponse.redirect(`${origin}${redirectPath}`)
+      } else {
+        // Profile doesn't exist (edge case), redirect to login
+        return NextResponse.redirect(`${origin}/auth/login`)
+      }
     }
   }
 

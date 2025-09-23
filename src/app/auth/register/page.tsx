@@ -24,10 +24,17 @@ export default function RegisterPage() {
     const supabase = createClient()
 
     try {
-      // Sign up the user
+      // Sign up the user with metadata for profile creation
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          data: {
+            first_name: firstName,
+            last_name: lastName || null,
+            role: role
+          }
+        }
       })
 
       if (authError) {
@@ -36,14 +43,8 @@ export default function RegisterPage() {
       }
 
       if (authData.user) {
-        // Store user data in localStorage for profile creation after email confirmation
-        localStorage.setItem('pendingProfile', JSON.stringify({
-          firstName,
-          lastName,
-          role
-        }))
-
         // Redirect to email confirmation page
+        // Profile will be created automatically by database trigger
         router.push('/auth/confirm-email')
       }
     } catch (err) {
