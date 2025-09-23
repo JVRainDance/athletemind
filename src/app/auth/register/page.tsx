@@ -52,24 +52,8 @@ export default function RegisterPage() {
           return
         }
 
-        // Wait a moment for the profile to be created, then redirect
-        setTimeout(async () => {
-          // Generate sessions for new athletes (they won't have a schedule yet, but this ensures the system is ready)
-          if (role === 'athlete') {
-            try {
-              await generateSessionsForAthlete(authData.user?.id || '')
-              console.log('Sessions generated for new athlete')
-            } catch (error) {
-              console.error('Error generating sessions for new athlete:', error)
-              // Don't block registration if session generation fails
-            }
-            router.push('/dashboard/athlete')
-          } else if (role === 'coach') {
-            router.push('/dashboard/coach')
-          } else {
-            router.push('/dashboard')
-          }
-        }, 1000)
+        // Redirect to email confirmation page
+        router.push('/auth/confirm-email')
       }
     } catch (err) {
       setError('An unexpected error occurred')

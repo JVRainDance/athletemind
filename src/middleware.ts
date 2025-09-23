@@ -48,11 +48,19 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(new URL('/auth/login', request.url))
     }
 
+    // Check if user is confirmed
+    if (session && !session.user.email_confirmed_at && 
+        !request.nextUrl.pathname.startsWith('/auth/confirm-email') &&
+        !request.nextUrl.pathname.startsWith('/auth/loading')) {
+      return NextResponse.redirect(new URL('/auth/confirm-email', request.url))
+    }
+
     // If user is signed in and trying to access auth pages, redirect to dashboard
-    // But allow access to /auth/loading page and /auth/register (for new users)
+    // But allow access to /auth/loading page, /auth/register, and /auth/confirm-email
     if (session && request.nextUrl.pathname.startsWith('/auth') && 
         !request.nextUrl.pathname.startsWith('/auth/loading') && 
-        !request.nextUrl.pathname.startsWith('/auth/register')) {
+        !request.nextUrl.pathname.startsWith('/auth/register') &&
+        !request.nextUrl.pathname.startsWith('/auth/confirm-email')) {
       // Get user profile to determine role-based redirect
       const { data: profile } = await supabase
         .from('profiles')

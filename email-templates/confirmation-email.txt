@@ -1,0 +1,29 @@
+Welcome to AthleteMind! 🎯
+
+You're just one click away from unlocking your athletic potential. 
+Please confirm your email address to get started.
+
+CONFIRM YOUR EMAIL:
+{{ .ConfirmationURL }}
+
+What happens next?
+Once you confirm your email, you'll have full access to your AthleteMind dashboard 
+where you can track your training progress, set goals, and connect with your coach.
+
+Features you'll unlock:
+📊 Track Progress: Monitor your training sessions and see your improvement over time
+🎯 Set Goals: Define your training objectives and stay motivated
+👥 Coach Connection: Stay connected with your coach for guidance and support
+🏆 Celebrate Wins: Earn rewards and recognition for your achievements
+
+🔒 Security Notice:
+This confirmation link will expire in 24 hours for your security. 
+If you didn't create an AthleteMind account, you can safely ignore this email.
+
+---
+AthleteMind - Empowering athletes to reach their full potential
+
+This email was sent to {{ .Email }}. If you have any questions, 
+please contact our support team.
+
+Help Center | Contact Support | Privacy Policy
