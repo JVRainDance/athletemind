@@ -16,6 +16,16 @@ export function getSessionButtonState(session: Session, checkin: Checkin | null)
   const sessionEnd = new Date(`${session.scheduled_date}T${session.end_time}`)
   const oneHourBefore = new Date(sessionStart.getTime() - 60 * 60 * 1000)
   
+  // Debug logging
+  console.log('Session timing debug:', {
+    now: now.toISOString(),
+    sessionStart: sessionStart.toISOString(),
+    sessionEnd: sessionEnd.toISOString(),
+    oneHourBefore: oneHourBefore.toISOString(),
+    timeUntilSession: Math.round((sessionStart.getTime() - now.getTime()) / (1000 * 60)), // minutes
+    timeUntilOneHour: Math.round((oneHourBefore.getTime() - now.getTime()) / (1000 * 60)) // minutes
+  })
+  
   // Check if we're within 1 hour of session start OR if session has started but not ended
   const canStartCheckin = (now >= oneHourBefore && now <= sessionEnd) || (now >= sessionStart && now <= sessionEnd)
   
@@ -25,6 +35,7 @@ export function getSessionButtonState(session: Session, checkin: Checkin | null)
   if (!checkin) {
     // No check-in completed
     if (canStartCheckin) {
+      console.log('Button state: ENABLED - No checkin, can start checkin')
       return {
         text: 'Start Pre-Training Check-in',
         href: `/dashboard/athlete/sessions/${session.id}/checkin`,
@@ -32,6 +43,7 @@ export function getSessionButtonState(session: Session, checkin: Checkin | null)
         disabled: false
       }
     } else {
+      console.log('Button state: DISABLED - No checkin, cannot start checkin yet')
       return {
         text: 'Start Pre-Training Check-in',
         href: `/dashboard/athlete/sessions/${session.id}/checkin`,

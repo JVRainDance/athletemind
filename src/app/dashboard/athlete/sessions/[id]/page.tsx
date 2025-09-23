@@ -149,17 +149,23 @@ export default async function SessionDetailPage({ params }: PageProps) {
               <p className="text-gray-600 mb-4">
                 {buttonState.description}
               </p>
-              <Link
-                href={buttonState.href}
-                className={`inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm ${
-                  buttonState.disabled
-                    ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
-                    : 'text-white bg-primary-600 hover:bg-primary-700'
-                }`}
-              >
-                <CheckCircle className="w-4 h-4 mr-2" />
-                {buttonState.text}
-              </Link>
+              {buttonState.disabled ? (
+                <button
+                  disabled
+                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm bg-gray-400 text-gray-200 cursor-not-allowed"
+                >
+                  <CheckCircle className="w-4 h-4 mr-2" />
+                  {buttonState.text}
+                </button>
+              ) : (
+                <Link
+                  href={buttonState.href}
+                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700"
+                >
+                  <CheckCircle className="w-4 h-4 mr-2" />
+                  {buttonState.text}
+                </Link>
+              )}
             </div>
           )
         })()}
