@@ -89,10 +89,7 @@ export default async function AthleteDashboard() {
               </div>
               
               {(() => {
-                console.log('Dashboard: nextSession:', nextSession)
-                console.log('Dashboard: nextSessionCheckin:', nextSessionCheckin)
                 const buttonState = getSessionButtonState(nextSession, nextSessionCheckin)
-                console.log('Dashboard: buttonState:', buttonState)
                 return (
                   <div className="flex justify-center">
                     {buttonState.disabled ? (

@@ -11,31 +11,15 @@ export interface ButtonState {
 }
 
 export function getSessionButtonState(session: Session, checkin: Checkin | null): ButtonState {
-  console.log('getSessionButtonState called with:', { session, checkin })
   const now = new Date()
   
   // Create session times in the user's local timezone
-  // This ensures consistent behavior between local development and Vercel deployment
   const sessionStart = new Date(`${session.scheduled_date}T${session.start_time}`)
   const sessionEnd = new Date(`${session.scheduled_date}T${session.end_time}`)
-  const oneHourBefore = new Date(sessionStart.getTime() - 60 * 60 * 1000)
   
-  // Simplified timing logic - allow check-in if we're within 2 hours of session
-  // This handles timezone issues and makes the button more user-friendly
-  const timeUntilSession = sessionStart.getTime() - now.getTime()
-  const timeUntilSessionMinutes = timeUntilSession / (1000 * 60)
-  
-  // Debug logging
-  console.log('Session timing debug:', {
-    now: now.toISOString(),
-    sessionStart: sessionStart.toISOString(),
-    sessionEnd: sessionEnd.toISOString(),
-    timeUntilSessionMinutes: Math.round(timeUntilSessionMinutes),
-    canStartCheckin: timeUntilSessionMinutes <= 120 && timeUntilSessionMinutes >= -60
-  })
-  
-  // Allow check-in if we're within 2 hours of session start (more lenient for timezone issues)
-  const canStartCheckin = timeUntilSessionMinutes <= 120 && timeUntilSessionMinutes >= -60
+  // Very simple logic: allow check-in if session hasn't ended yet
+  // This eliminates all timing complexity and timezone issues
+  const canStartCheckin = now <= sessionEnd
   
   // Check if session time has passed
   const sessionTimePassed = now > sessionEnd
