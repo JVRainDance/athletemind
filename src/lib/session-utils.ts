@@ -21,6 +21,18 @@ export function getSessionButtonState(session: Session, checkin: Checkin | null)
   // This eliminates all timing complexity and timezone issues
   const canStartCheckin = now <= sessionEnd
   
+  // Debug logging
+  console.log('Button state debug:', {
+    sessionId: session.id,
+    sessionStatus: session.status,
+    hasCheckin: !!checkin,
+    checkinId: checkin?.id,
+    now: now.toISOString(),
+    sessionStart: sessionStart.toISOString(),
+    sessionEnd: sessionEnd.toISOString(),
+    canStartCheckin
+  })
+  
   // Check if session time has passed
   const sessionTimePassed = now > sessionEnd
   

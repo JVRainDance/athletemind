@@ -43,11 +43,20 @@ export default async function AthleteDashboard() {
   // Get check-in for next session if it exists
   let nextSessionCheckin = null
   if (nextSession) {
-    const { data: checkinData } = await supabase
+    const { data: checkinData, error: checkinError } = await supabase
       .from('pre_training_checkins')
       .select('*')
       .eq('session_id', nextSession.id)
       .maybeSingle()
+    
+    // Debug logging
+    console.log('Dashboard debug:', {
+      sessionId: nextSession.id,
+      sessionStatus: nextSession.status,
+      checkinData,
+      checkinError
+    })
+    
     nextSessionCheckin = checkinData
   }
 
