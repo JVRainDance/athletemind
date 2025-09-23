@@ -1,6 +1,6 @@
 -- Create coach_athletes table to establish relationships
 CREATE TABLE coach_athletes (
-    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     coach_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
     athlete_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
     assigned_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
@@ -12,7 +12,7 @@ CREATE TABLE coach_athletes (
 
 -- Create squads table for team management
 CREATE TABLE squads (
-    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     name TEXT NOT NULL,
     description TEXT,
     coach_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
@@ -22,7 +22,7 @@ CREATE TABLE squads (
 
 -- Create squad_members table
 CREATE TABLE squad_members (
-    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     squad_id UUID REFERENCES squads(id) ON DELETE CASCADE NOT NULL,
     athlete_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
     joined_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),

@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@/lib/supabase-client'
 import { useRouter } from 'next/navigation'
 
 export default function AuthLoadingPage() {
@@ -17,6 +17,7 @@ export default function AuthLoadingPage() {
         // Wait a moment for session to be established
         await new Promise(resolve => setTimeout(resolve, 1000))
         
+        const supabase = createClient()
         const { data: { session }, error } = await supabase.auth.getSession()
         console.log('Loading page: Session result:', { session: !!session, error })
         

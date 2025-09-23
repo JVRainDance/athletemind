@@ -8,7 +8,7 @@ ADD COLUMN reward_earned BOOLEAN DEFAULT FALSE;
 
 -- Create rating_themes table for customizable rating systems
 CREATE TABLE rating_themes (
-    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     user_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
     theme_name TEXT NOT NULL,
     theme_type TEXT NOT NULL CHECK (theme_type IN ('animals', 'gaming', 'sports', 'nature', 'custom')),
@@ -20,7 +20,7 @@ CREATE TABLE rating_themes (
 
 -- Create advance_goals table for setting goals up to 7 days in advance
 CREATE TABLE advance_goals (
-    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     session_id UUID REFERENCES training_sessions(id) ON DELETE CASCADE NOT NULL,
     goal_text TEXT NOT NULL,
     goal_order INTEGER NOT NULL CHECK (goal_order >= 1 AND goal_order <= 3),
@@ -31,7 +31,7 @@ CREATE TABLE advance_goals (
 
 -- Create rewards table for individual and squad rewards
 CREATE TABLE rewards (
-    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     user_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
     reward_name TEXT NOT NULL,
     reward_description TEXT,
@@ -44,7 +44,7 @@ CREATE TABLE rewards (
 
 -- Create user_stars table to track star earnings
 CREATE TABLE user_stars (
-    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     user_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
     session_id UUID REFERENCES training_sessions(id) ON DELETE CASCADE NOT NULL,
     stars_earned INTEGER DEFAULT 1,

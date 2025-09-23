@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@/lib/supabase-client'
 import { Calendar, Clock, Play, CheckCircle, XCircle, AlertCircle } from 'lucide-react'
 import { formatDate, formatTime } from '@/lib/utils'
 
@@ -40,6 +40,7 @@ export default function SessionsPage() {
 
   const fetchSessions = async () => {
     try {
+      const supabase = createClient()
       const { data: { session } } = await supabase.auth.getSession()
       if (!session) {
         router.push('/auth/login')

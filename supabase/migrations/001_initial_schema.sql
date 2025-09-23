@@ -1,5 +1,4 @@
--- Enable necessary extensions
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+-- Extensions are not needed for gen_random_uuid()
 
 -- Create custom types
 CREATE TYPE user_role AS ENUM ('athlete', 'coach', 'parent');
@@ -18,7 +17,7 @@ CREATE TABLE profiles (
 
 -- Create training_schedules table
 CREATE TABLE training_schedules (
-    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     athlete_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
     day_of_week INTEGER NOT NULL CHECK (day_of_week >= 0 AND day_of_week <= 6),
     start_time TIME NOT NULL,
@@ -30,7 +29,7 @@ CREATE TABLE training_schedules (
 
 -- Create training_sessions table
 CREATE TABLE training_sessions (
-    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     athlete_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
     scheduled_date DATE NOT NULL,
     start_time TIME NOT NULL,
@@ -44,7 +43,7 @@ CREATE TABLE training_sessions (
 
 -- Create session_goals table
 CREATE TABLE session_goals (
-    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     session_id UUID REFERENCES training_sessions(id) ON DELETE CASCADE NOT NULL,
     goal_text TEXT NOT NULL,
     achieved BOOLEAN,
@@ -54,7 +53,7 @@ CREATE TABLE session_goals (
 
 -- Create pre_training_checkins table
 CREATE TABLE pre_training_checkins (
-    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     session_id UUID REFERENCES training_sessions(id) ON DELETE CASCADE NOT NULL,
     energy_level INTEGER NOT NULL CHECK (energy_level >= 1 AND energy_level <= 5),
     mindset_level INTEGER NOT NULL CHECK (mindset_level >= 1 AND mindset_level <= 5),
@@ -64,7 +63,7 @@ CREATE TABLE pre_training_checkins (
 
 -- Create training_notes table
 CREATE TABLE training_notes (
-    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     session_id UUID REFERENCES training_sessions(id) ON DELETE CASCADE NOT NULL,
     note_text TEXT NOT NULL,
     category TEXT NOT NULL,
@@ -74,7 +73,7 @@ CREATE TABLE training_notes (
 
 -- Create session_reflections table
 CREATE TABLE session_reflections (
-    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     session_id UUID REFERENCES training_sessions(id) ON DELETE CASCADE NOT NULL,
     what_went_well TEXT NOT NULL,
     what_didnt_go_well TEXT NOT NULL,
