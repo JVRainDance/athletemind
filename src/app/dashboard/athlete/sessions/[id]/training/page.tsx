@@ -382,7 +382,7 @@ export default function TrainingPage({ params }: PageProps) {
                       {note.category}
                     </span>
                     <span className="text-xs text-gray-500">
-                      {new Date(note.created_at).toLocaleTimeString()}
+                      {note.created_at ? new Date(note.created_at).toLocaleTimeString() : 'Unknown time'}
                     </span>
                   </div>
                   <p className="mt-1 text-sm text-gray-700">{note.note_text}</p>

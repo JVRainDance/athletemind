@@ -57,7 +57,7 @@ export default function RegisterPage() {
           // Generate sessions for new athletes (they won't have a schedule yet, but this ensures the system is ready)
           if (role === 'athlete') {
             try {
-              await generateSessionsForAthlete(authData.user.id)
+              await generateSessionsForAthlete(authData.user?.id || '')
               console.log('Sessions generated for new athlete')
             } catch (error) {
               console.error('Error generating sessions for new athlete:', error)

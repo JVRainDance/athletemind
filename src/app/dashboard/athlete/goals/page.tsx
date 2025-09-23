@@ -26,10 +26,6 @@ export default function GoalsPage() {
   const [newGoal, setNewGoal] = useState('')
   const router = useRouter()
 
-  useEffect(() => {
-    fetchUpcomingSessions()
-  }, [fetchUpcomingSessions])
-
   const fetchUpcomingSessions = useCallback(async () => {
     try {
       const supabase = createClient()
@@ -82,6 +78,10 @@ export default function GoalsPage() {
       setLoading(false)
     }
   }, [router])
+
+  useEffect(() => {
+    fetchUpcomingSessions()
+  }, [fetchUpcomingSessions])
 
   const handleAddGoal = async (sessionId: string) => {
     if (!newGoal.trim()) {

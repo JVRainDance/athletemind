@@ -284,7 +284,7 @@ export default function ReflectionPage({ params }: PageProps) {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                What didn't go well or could be improved?
+                What didn&apos;t go well or could be improved?
               </label>
               <textarea
                 value={whatDidntGoWell}
@@ -310,7 +310,7 @@ export default function ReflectionPage({ params }: PageProps) {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                What are you most proud of from today's training?
+                What are you most proud of from today&apos;s training?
               </label>
               <textarea
                 value={mostProudOf}
@@ -326,7 +326,7 @@ export default function ReflectionPage({ params }: PageProps) {
         {/* Overall Rating */}
         <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Overall Training Rating</h3>
-          <p className="text-sm text-gray-600 mb-4">How would you rate today's training overall?</p>
+          <p className="text-sm text-gray-600 mb-4">How would you rate today&apos;s training overall?</p>
           
           <div className="flex items-center space-x-2">
             {[1, 2, 3, 4, 5].map((level) => (

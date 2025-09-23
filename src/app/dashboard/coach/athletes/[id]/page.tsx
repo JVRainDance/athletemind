@@ -327,7 +327,7 @@ export default function AthleteDetailPage() {
                     </div>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(session.status)}`}>
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(session.status || 'scheduled')}`}>
                       {session.status}
                     </span>
                     {session.absence_reason && (
@@ -344,7 +344,7 @@ export default function AthleteDetailPage() {
               <Calendar className="mx-auto h-12 w-12 text-gray-400" />
               <h3 className="mt-2 text-sm font-medium text-gray-900">No sessions yet</h3>
               <p className="mt-1 text-sm text-gray-500">
-                This athlete hasn't had any training sessions scheduled.
+                This athlete hasn&apos;t had any training sessions scheduled.
               </p>
             </div>
           )}

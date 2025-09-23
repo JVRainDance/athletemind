@@ -67,6 +67,7 @@ export default function SessionsPage() {
 
   const handleStartSession = async (sessionId: string) => {
     try {
+      const supabase = createClient()
       const { error } = await supabase
         .from('training_sessions')
         .update({ status: 'in_progress' })
@@ -91,6 +92,7 @@ export default function SessionsPage() {
     }
 
     try {
+      const supabase = createClient()
       const { error } = await supabase
         .from('training_sessions')
         .update({ 
@@ -119,6 +121,7 @@ export default function SessionsPage() {
     }
 
     try {
+      const supabase = createClient()
       const { error } = await supabase
         .from('training_sessions')
         .update({ status: 'cancelled' })

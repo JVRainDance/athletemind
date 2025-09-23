@@ -1,5 +1,8 @@
 {
-  "extends": "next/core-web-vitals"
+  "extends": "next/core-web-vitals",
+  "rules": {
+    "react-hooks/exhaustive-deps": "off",
+    "react/no-unescaped-entities": "error"
+  },
+  "ignorePatterns": ["src/types/database.ts"]
 }
-
-

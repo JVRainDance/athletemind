@@ -44,10 +44,6 @@ export default function PreTrainingCheckinPage({ params }: PageProps) {
   const [timeUntilSession, setTimeUntilSession] = useState<string>('')
 
   useEffect(() => {
-    loadSessionData()
-  }, [params.id, loadSessionData])
-
-  useEffect(() => {
     // Check if we're within 1 hour of session start
     if (session) {
       const sessionDateTime = new Date(`${session.scheduled_date}T${session.start_time}`)
@@ -173,6 +169,10 @@ export default function PreTrainingCheckinPage({ params }: PageProps) {
       setLoading(false)
     }
   }, [params.id, router])
+
+  useEffect(() => {
+    loadSessionData()
+  }, [params.id, loadSessionData])
 
   const handleSubmit = async () => {
     if (!session || !canStartCheckin) return
@@ -333,7 +333,7 @@ export default function PreTrainingCheckinPage({ params }: PageProps) {
             <h3 className="text-lg font-semibold text-gray-900">Training Goals</h3>
           </div>
           <p className="text-sm text-gray-600 mb-4">
-            Set up to 3 goals for today's training. At least 1 goal is required.
+            Set up to 3 goals for today&apos;s training. At least 1 goal is required.
           </p>
           
           <div className="space-y-4">
