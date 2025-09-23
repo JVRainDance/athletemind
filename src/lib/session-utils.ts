@@ -13,9 +13,14 @@ export interface ButtonState {
 export function getSessionButtonState(session: Session, checkin: Checkin | null): ButtonState {
   const now = new Date()
   
-  // Create session times in the user's local timezone
-  const sessionStart = new Date(`${session.scheduled_date}T${session.start_time}`)
-  const sessionEnd = new Date(`${session.scheduled_date}T${session.end_time}`)
+  // Create session times - treat them as local time
+  // Parse the date and time components separately to avoid timezone issues
+  const [year, month, day] = session.scheduled_date.split('-').map(Number)
+  const [startHour, startMin, startSec] = session.start_time.split(':').map(Number)
+  const [endHour, endMin, endSec] = session.end_time.split(':').map(Number)
+  
+  const sessionStart = new Date(year, month - 1, day, startHour, startMin, startSec)
+  const sessionEnd = new Date(year, month - 1, day, endHour, endMin, endSec)
   
   // Very simple logic: allow check-in if session hasn't ended yet
   // This eliminates all timing complexity and timezone issues
