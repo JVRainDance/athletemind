@@ -3,7 +3,8 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@/lib/supabase-client'
+import { generateSessionsForAthlete } from '@/lib/session-generation'
 
 export default function RegisterPage() {
   const [email, setEmail] = useState('')
@@ -19,6 +20,8 @@ export default function RegisterPage() {
     e.preventDefault()
     setLoading(true)
     setError('')
+
+    const supabase = createClient()
 
     try {
       // Sign up the user
@@ -49,14 +52,24 @@ export default function RegisterPage() {
           return
         }
 
-        // Redirect based on role
-        if (role === 'athlete') {
-          router.push('/dashboard/athlete')
-        } else if (role === 'coach') {
-          router.push('/dashboard/coach')
-        } else {
-          router.push('/dashboard')
-        }
+        // Wait a moment for the profile to be created, then redirect
+        setTimeout(async () => {
+          // Generate sessions for new athletes (they won't have a schedule yet, but this ensures the system is ready)
+          if (role === 'athlete') {
+            try {
+              await generateSessionsForAthlete(authData.user.id)
+              console.log('Sessions generated for new athlete')
+            } catch (error) {
+              console.error('Error generating sessions for new athlete:', error)
+              // Don't block registration if session generation fails
+            }
+            router.push('/dashboard/athlete')
+          } else if (role === 'coach') {
+            router.push('/dashboard/coach')
+          } else {
+            router.push('/dashboard')
+          }
+        }, 1000)
       }
     } catch (err) {
       setError('An unexpected error occurred')

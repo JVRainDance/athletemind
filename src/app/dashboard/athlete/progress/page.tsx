@@ -1,396 +1,422 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
-import { formatDate } from '@/lib/utils'
-import { TrendingUp, Target, Calendar, Award, BarChart3 } from 'lucide-react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { createClient } from '@/lib/supabase-client'
+import { Database } from '@/types/database'
+import { Flame, Star, Gift, Target, BarChart3, Calendar, ArrowRight, Sparkles } from 'lucide-react'
+import BackButton from '@/components/BackButton'
 
-interface ProgressStats {
-  totalSessions: number
-  completedSessions: number
-  completionRate: number
-  currentStreak: number
-  longestStreak: number
-  totalGoals: number
-  achievedGoals: number
-  goalAchievementRate: number
-  averageRating: number
-}
+type Session = Database['public']['Tables']['training_sessions']['Row']
+type Goal = Database['public']['Tables']['session_goals']['Row']
+type UserStar = Database['public']['Tables']['user_stars']['Row']
+type Reward = Database['public']['Tables']['rewards']['Row']
 
-interface RecentSession {
-  id: string
-  scheduled_date: string
-  overall_rating: number
-  goals_achieved: number
-  total_goals: number
-}
-
-export default function ProgressPage() {
-  const [stats, setStats] = useState<ProgressStats | null>(null)
-  const [recentSessions, setRecentSessions] = useState<RecentSession[]>([])
-  const [loading, setLoading] = useState(true)
+export default function AthleteProgressPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const supabase = createClient()
+  
+  const [loading, setLoading] = useState(true)
+  const [userName, setUserName] = useState('')
+  const [stats, setStats] = useState({
+    currentStreak: 0,
+    totalStars: 0,
+    goalCompletion: 0,
+    weeklyConsistency: 0,
+    recentSessions: [] as Session[]
+  })
+  const [rewards, setRewards] = useState<Reward[]>([])
+  const [showCelebration, setShowCelebration] = useState(false)
 
   useEffect(() => {
-    fetchProgressData()
-  }, [])
+    loadProgressData()
+    
+    // Check if this is from a completed session
+    const fromSession = searchParams.get('fromSession')
+    if (fromSession === 'true') {
+      setShowCelebration(true)
+    }
+  }, [searchParams])
 
-  const fetchProgressData = async () => {
+  const loadProgressData = async () => {
     try {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session) {
+      const { data: { session: authSession } } = await supabase.auth.getSession()
+      if (!authSession) {
         router.push('/auth/login')
         return
       }
 
-      // Fetch all sessions
-      const { data: allSessions } = await supabase
+      // Get user profile
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('first_name, last_name')
+        .eq('id', authSession.user.id)
+        .single()
+
+      if (profile) {
+        setUserName(profile.first_name || 'Athlete')
+      }
+
+      // Get completed sessions for streak calculation
+      const { data: completedSessions } = await supabase
         .from('training_sessions')
         .select('*')
-        .eq('athlete_id', session.user.id)
-        .in('status', ['completed', 'absent'])
-        .order('scheduled_date', { ascending: false })
-
-      // Fetch all goals
-      const { data: allGoals } = await supabase
-        .from('session_goals')
-        .select(`
-          *,
-          training_sessions!inner(athlete_id, status)
-        `)
-        .eq('training_sessions.athlete_id', session.user.id)
-        .eq('training_sessions.status', 'completed')
-
-      // Fetch reflections with ratings
-      const { data: reflections } = await supabase
-        .from('session_reflections')
-        .select(`
-          overall_rating,
-          training_sessions!inner(athlete_id, status, scheduled_date)
-        `)
-        .eq('training_sessions.athlete_id', session.user.id)
-        .eq('training_sessions.status', 'completed')
-        .order('training_sessions.scheduled_date', { ascending: false })
-
-      // Calculate stats
-      const totalSessions = allSessions?.length || 0
-      const completedSessions = allSessions?.filter(s => s.status === 'completed').length || 0
-      const completionRate = totalSessions > 0 ? Math.round((completedSessions / totalSessions) * 100) : 0
-
-      // Calculate streaks
-      const completedDates = allSessions
-        ?.filter(s => s.status === 'completed')
-        .map(s => new Date(s.scheduled_date).toDateString())
-        .sort((a, b) => new Date(b).getTime() - new Date(a).getTime()) || []
-
-      const { currentStreak, longestStreak } = calculateStreaks(completedDates)
-
-      // Calculate goal stats
-      const totalGoals = allGoals?.length || 0
-      const achievedGoals = allGoals?.filter(g => g.achieved === true).length || 0
-      const goalAchievementRate = totalGoals > 0 ? Math.round((achievedGoals / totalGoals) * 100) : 0
-
-      // Calculate average rating
-      const ratings = reflections?.map(r => r.overall_rating) || []
-      const averageRating = ratings.length > 0 ? ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length : 0
-
-      setStats({
-        totalSessions,
-        completedSessions,
-        completionRate,
-        currentStreak,
-        longestStreak,
-        totalGoals,
-        achievedGoals,
-        goalAchievementRate,
-        averageRating: Math.round(averageRating * 10) / 10
-      })
-
-      // Fetch recent sessions with goal data
-      const { data: recentSessionsData } = await supabase
-        .from('training_sessions')
-        .select(`
-          id,
-          scheduled_date,
-          session_reflections(overall_rating),
-          session_goals(achieved)
-        `)
-        .eq('athlete_id', session.user.id)
+        .eq('athlete_id', authSession.user.id)
         .eq('status', 'completed')
         .order('scheduled_date', { ascending: false })
-        .limit(10)
+        .limit(50) // Limit to last 50 sessions for performance
 
-      const processedRecentSessions = recentSessionsData?.map(session => ({
-        id: session.id,
-        scheduled_date: session.scheduled_date,
-        overall_rating: session.session_reflections?.[0]?.overall_rating || 0,
-        goals_achieved: session.session_goals?.filter((g: any) => g.achieved === true).length || 0,
-        total_goals: session.session_goals?.length || 0
-      })) || []
+      // Calculate current streak
+      const currentStreak = calculateStreak(completedSessions || [])
 
-      setRecentSessions(processedRecentSessions)
+      // Get total stars earned
+      const { data: userStars } = await supabase
+        .from('user_stars')
+        .select('stars_earned')
+        .eq('user_id', authSession.user.id)
+
+      const totalStars = userStars?.reduce((sum, star) => sum + star.stars_earned, 0) || 0
+
+      // Get recent sessions (last 6)
+      const recentSessions = (completedSessions || []).slice(0, 6)
+
+      // Calculate weekly consistency (last 4 weeks)
+      const weeklyConsistency = await calculateWeeklyConsistency(authSession.user.id)
+
+      // Get goal completion rate for this week
+      const goalCompletion = await calculateGoalCompletion(authSession.user.id)
+
+      // Get rewards
+      const { data: userRewards } = await supabase
+        .from('rewards')
+        .select('*')
+        .eq('user_id', authSession.user.id)
+        .eq('is_active', true)
+        .eq('reward_type', 'individual')
+
+      console.log('Progress data loaded:', {
+        currentStreak,
+        totalStars,
+        goalCompletion,
+        weeklyConsistency,
+        recentSessionsCount: recentSessions.length,
+        rewardsCount: userRewards?.length || 0
+      })
+
+      setStats({
+        currentStreak: currentStreak || 0,
+        totalStars: totalStars || 0,
+        goalCompletion: goalCompletion || 0,
+        weeklyConsistency: weeklyConsistency || 0,
+        recentSessions: recentSessions || []
+      })
+      setRewards(userRewards || [])
+
     } catch (error) {
-      console.error('Error:', error)
+      console.error('Error loading progress data:', error)
     } finally {
       setLoading(false)
     }
   }
 
-  const calculateStreaks = (completedDates: string[]) => {
-    if (completedDates.length === 0) return { currentStreak: 0, longestStreak: 0 }
-
-    let currentStreak = 0
-    let longestStreak = 0
-    let tempStreak = 1
-
+  const calculateStreak = (sessions: Session[]) => {
+    if (sessions.length === 0) return 0
+    
+    let streak = 0
     const today = new Date()
-    const yesterday = new Date(today)
-    yesterday.setDate(yesterday.getDate() - 1)
-
-    // Check current streak
-    for (let i = 0; i < completedDates.length; i++) {
-      const date = new Date(completedDates[i])
-      const expectedDate = new Date(today)
-      expectedDate.setDate(expectedDate.getDate() - i)
-
-      if (date.toDateString() === expectedDate.toDateString()) {
-        currentStreak++
+    today.setHours(0, 0, 0, 0)
+    
+    // Sort sessions by date (most recent first)
+    const sortedSessions = [...sessions].sort((a, b) => 
+      new Date(b.scheduled_date).getTime() - new Date(a.scheduled_date).getTime()
+    )
+    
+    for (let i = 0; i < sortedSessions.length; i++) {
+      const sessionDate = new Date(sortedSessions[i].scheduled_date)
+      sessionDate.setHours(0, 0, 0, 0)
+      
+      const daysDiff = Math.floor((today.getTime() - sessionDate.getTime()) / (1000 * 60 * 60 * 24))
+      
+      if (i === 0) {
+        // First session - check if it's today or yesterday
+        if (daysDiff <= 1) {
+          streak = 1
+        } else {
+          break
+        }
       } else {
-        break
+        // Check if this session is consecutive to the previous one
+        const prevSessionDate = new Date(sortedSessions[i-1].scheduled_date)
+        prevSessionDate.setHours(0, 0, 0, 0)
+        const daysBetween = Math.floor((prevSessionDate.getTime() - sessionDate.getTime()) / (1000 * 60 * 60 * 24))
+        
+        if (daysBetween === 1) {
+          streak++
+        } else {
+          break
+        }
       }
     }
+    
+    return streak
+  }
 
-    // Calculate longest streak
-    for (let i = 1; i < completedDates.length; i++) {
-      const currentDate = new Date(completedDates[i])
-      const previousDate = new Date(completedDates[i - 1])
-      const dayDiff = (previousDate.getTime() - currentDate.getTime()) / (1000 * 60 * 60 * 24)
+  const calculateWeeklyConsistency = async (userId: string) => {
+    const fourWeeksAgo = new Date()
+    fourWeeksAgo.setDate(fourWeeksAgo.getDate() - 28)
+    
+    // Get all sessions (scheduled and completed) from the last 4 weeks
+    const { data: allSessions } = await supabase
+      .from('training_sessions')
+      .select('*')
+      .eq('athlete_id', userId)
+      .gte('scheduled_date', fourWeeksAgo.toISOString())
+      .order('scheduled_date', { ascending: true })
+    
+    if (!allSessions || allSessions.length === 0) return 0
+    
+    const completedSessions = allSessions.filter(session => session.status === 'completed')
+    return Math.round((completedSessions.length / allSessions.length) * 100)
+  }
 
-      if (dayDiff === 1) {
-        tempStreak++
-      } else {
-        longestStreak = Math.max(longestStreak, tempStreak)
-        tempStreak = 1
-      }
-    }
-    longestStreak = Math.max(longestStreak, tempStreak)
+  const calculateGoalCompletion = async (userId: string) => {
+    // Get goals from this week's completed sessions
+    const oneWeekAgo = new Date()
+    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7)
+    
+    // First get completed sessions from this week
+    const { data: recentSessions } = await supabase
+      .from('training_sessions')
+      .select('id')
+      .eq('athlete_id', userId)
+      .eq('status', 'completed')
+      .gte('scheduled_date', oneWeekAgo.toISOString())
+    
+    if (!recentSessions || recentSessions.length === 0) return 0
+    
+    const sessionIds = recentSessions.map(session => session.id)
+    
+    // Get goals for these sessions
+    const { data: recentGoals } = await supabase
+      .from('session_goals')
+      .select('achieved')
+      .in('session_id', sessionIds)
+    
+    if (!recentGoals || recentGoals.length === 0) return 0
+    
+    const achievedGoals = recentGoals.filter(goal => goal.achieved === true).length
+    return Math.round((achievedGoals / recentGoals.length) * 100)
+  }
 
-    return { currentStreak, longestStreak }
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric'
+    })
+  }
+
+  const getNextReward = () => {
+    if (rewards.length === 0) return null
+    
+    // Find the reward with the highest stars_required that hasn't been achieved
+    const sortedRewards = rewards.sort((a, b) => a.stars_required - b.stars_required)
+    return sortedRewards.find(reward => reward.stars_required > stats.totalStars) || sortedRewards[0]
   }
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-lg text-gray-600">Loading...</div>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading your progress...</p>
+        </div>
       </div>
     )
   }
 
-  if (!stats) {
-    return (
-      <div className="text-center py-6">
-        <p className="text-gray-600">Unable to load progress data.</p>
-      </div>
-    )
-  }
+  const nextReward = getNextReward()
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">Your Progress</h1>
-        <p className="mt-2 text-gray-600">
-          Track your training journey and celebrate your achievements
-        </p>
-      </div>
-
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-white overflow-hidden shadow rounded-lg">
-          <div className="p-5">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <TrendingUp className="h-6 w-6 text-primary-600" />
-              </div>
-              <div className="ml-5 w-0 flex-1">
-                <dl>
-                  <dt className="text-sm font-medium text-gray-500 truncate">
-                    Completion Rate
-                  </dt>
-                  <dd className="text-lg font-medium text-gray-900">
-                    {stats.completionRate}%
-                  </dd>
-                </dl>
-              </div>
-            </div>
-          </div>
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Back Button */}
+        <div className="mb-6">
+          <BackButton href="/dashboard/athlete" />
         </div>
-
-        <div className="bg-white overflow-hidden shadow rounded-lg">
-          <div className="p-5">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <Award className="h-6 w-6 text-secondary-600" />
+        
+        {/* Header */}
+        <div className="text-center mb-8">
+          {showCelebration ? (
+            <div className="bg-white rounded-lg shadow-sm p-6">
+              <div className="flex items-center justify-center mb-4">
+                <Sparkles className="h-8 w-8 text-yellow-500 mr-2" />
+                <h1 className="text-3xl font-bold text-gray-900">
+                  Awesome Work Today!
+                </h1>
               </div>
-              <div className="ml-5 w-0 flex-1">
-                <dl>
-                  <dt className="text-sm font-medium text-gray-500 truncate">
-                    Current Streak
-                  </dt>
-                  <dd className="text-lg font-medium text-gray-900">
-                    {stats.currentStreak} days
-                  </dd>
-                </dl>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white overflow-hidden shadow rounded-lg">
-          <div className="p-5">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <Target className="h-6 w-6 text-green-600" />
-              </div>
-              <div className="ml-5 w-0 flex-1">
-                <dl>
-                  <dt className="text-sm font-medium text-gray-500 truncate">
-                    Goal Achievement
-                  </dt>
-                  <dd className="text-lg font-medium text-gray-900">
-                    {stats.goalAchievementRate}%
-                  </dd>
-                </dl>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white overflow-hidden shadow rounded-lg">
-          <div className="p-5">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <BarChart3 className="h-6 w-6 text-purple-600" />
-              </div>
-              <div className="ml-5 w-0 flex-1">
-                <dl>
-                  <dt className="text-sm font-medium text-gray-500 truncate">
-                    Avg Rating
-                  </dt>
-                  <dd className="text-lg font-medium text-gray-900">
-                    {stats.averageRating}/5
-                  </dd>
-                </dl>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Detailed Stats */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Session Stats */}
-        <div className="bg-white shadow rounded-lg p-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Session Statistics</h3>
-          <div className="space-y-4">
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-600">Total Sessions</span>
-              <span className="text-sm font-medium text-gray-900">{stats.totalSessions}</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-600">Completed Sessions</span>
-              <span className="text-sm font-medium text-gray-900">{stats.completedSessions}</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-600">Longest Streak</span>
-              <span className="text-sm font-medium text-gray-900">{stats.longestStreak} days</span>
-            </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
-              <div 
-                className="bg-primary-600 h-2 rounded-full transition-all duration-1000"
-                style={{ width: `${stats.completionRate}%` }}
-              />
-            </div>
-            <p className="text-xs text-gray-500 text-center">
-              {stats.completionRate}% completion rate
-            </p>
-          </div>
-        </div>
-
-        {/* Goal Stats */}
-        <div className="bg-white shadow rounded-lg p-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Goal Statistics</h3>
-          <div className="space-y-4">
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-600">Total Goals Set</span>
-              <span className="text-sm font-medium text-gray-900">{stats.totalGoals}</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-600">Goals Achieved</span>
-              <span className="text-sm font-medium text-gray-900">{stats.achievedGoals}</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-600">Achievement Rate</span>
-              <span className="text-sm font-medium text-gray-900">{stats.goalAchievementRate}%</span>
-            </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
-              <div 
-                className="bg-green-600 h-2 rounded-full transition-all duration-1000"
-                style={{ width: `${stats.goalAchievementRate}%` }}
-              />
-            </div>
-            <p className="text-xs text-gray-500 text-center">
-              {stats.goalAchievementRate}% goal achievement rate
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Recent Sessions */}
-      <div className="bg-white shadow rounded-lg">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h3 className="text-lg font-medium text-gray-900">Recent Training Sessions</h3>
-        </div>
-        <div className="px-6 py-4">
-          {recentSessions.length > 0 ? (
-            <div className="space-y-3">
-              {recentSessions.map((session) => (
-                <div key={session.id} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
-                  <div>
-                    <p className="text-sm font-medium text-gray-900">
-                      {formatDate(session.scheduled_date)}
-                    </p>
-                    <p className="text-xs text-gray-500">
-                      Goals: {session.goals_achieved}/{session.total_goals} achieved
-                    </p>
-                  </div>
-                  <div className="flex items-center space-x-3">
-                    <div className="flex items-center space-x-1">
-                      {[...Array(5)].map((_, i) => (
-                        <div
-                          key={i}
-                          className={`w-3 h-3 rounded-full ${
-                            i < session.overall_rating ? 'bg-yellow-400' : 'bg-gray-200'
-                          }`}
-                        />
-                      ))}
-                    </div>
-                    <span className="text-sm text-gray-600">
-                      {session.overall_rating}/5
-                    </span>
-                  </div>
-                </div>
-              ))}
+              <p className="text-lg text-gray-600">
+                Here's how you're progressing, {userName}
+              </p>
             </div>
           ) : (
-            <div className="text-center py-6">
-              <Calendar className="mx-auto h-8 w-8 text-gray-400" />
-              <h3 className="mt-2 text-sm font-medium text-gray-900">No completed sessions yet</h3>
-              <p className="mt-1 text-sm text-gray-500">
-                Complete your first training session to start tracking your progress.
+            <div className="bg-white rounded-lg shadow-sm p-6">
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                Your Progress
+              </h1>
+              <p className="text-lg text-gray-600">
+                Keep up the great work, {userName}!
               </p>
             </div>
           )}
+        </div>
+
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
+          {/* Current Streak */}
+          <div className="bg-white rounded-lg shadow-sm p-6">
+            <div className="flex items-center mb-4">
+              <Flame className="h-6 w-6 text-orange-500 mr-3" />
+              <h3 className="text-lg font-semibold text-gray-900">Current Streak</h3>
+            </div>
+            <div className="text-3xl font-bold text-orange-500 mb-2">
+              {stats.currentStreak} sessions
+            </div>
+            <p className="text-gray-600">In a row! Keep it going!</p>
+          </div>
+
+          {/* Total Stars */}
+          <div className="bg-white rounded-lg shadow-sm p-6">
+            <div className="flex items-center mb-4">
+              <Star className="h-6 w-6 text-yellow-500 mr-3" />
+              <h3 className="text-lg font-semibold text-gray-900">Total Stars Earned</h3>
+            </div>
+            <div className="text-3xl font-bold text-yellow-500 mb-2">
+              {stats.totalStars} ⭐
+            </div>
+            <p className="text-gray-600">Amazing progress!</p>
+          </div>
+
+          {/* Next Reward Progress */}
+          {nextReward && (
+            <div className="bg-white rounded-lg shadow-sm p-6">
+              <div className="flex items-center mb-4">
+                <Gift className="h-6 w-6 text-primary-500 mr-3" />
+                <h3 className="text-lg font-semibold text-gray-900">Next Reward Progress</h3>
+              </div>
+              <div className="text-xl font-semibold text-gray-900 mb-2">
+                {nextReward.reward_name}
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
+                <div 
+                  className="bg-primary-500 h-2 rounded-full transition-all duration-300"
+                  style={{ width: `${Math.min(100, (stats.totalStars / nextReward.stars_required) * 100)}%` }}
+                ></div>
+              </div>
+              <p className="text-gray-600">
+                {nextReward.stars_required - stats.totalStars > 0 
+                  ? `${nextReward.stars_required - stats.totalStars} more stars to go!`
+                  : 'Reward unlocked!'
+                }
+              </p>
+            </div>
+          )}
+
+          {/* Goal Completion */}
+          <div className="bg-white rounded-lg shadow-sm p-6">
+            <div className="flex items-center mb-4">
+              <Target className="h-6 w-6 text-green-500 mr-3" />
+              <h3 className="text-lg font-semibold text-gray-900">Goal Completion</h3>
+            </div>
+            <div className="text-3xl font-bold text-green-500 mb-2">
+              {stats.goalCompletion}%
+            </div>
+            <p className="text-gray-600">completed this week</p>
+          </div>
+        </div>
+
+        {/* Weekly Consistency */}
+        <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
+          <div className="flex items-center mb-4">
+            <BarChart3 className="h-6 w-6 text-primary-500 mr-3" />
+            <h3 className="text-lg font-semibold text-gray-900">Last 4 Weeks Consistency</h3>
+          </div>
+          <div className="text-3xl font-bold text-primary-600 mb-2">
+            {Math.round(stats.weeklyConsistency)}%
+          </div>
+          <p className="text-gray-600 mb-4">of scheduled sessions logged.</p>
+          <div className="w-full bg-gray-200 rounded-full h-3">
+            <div 
+              className="bg-primary-500 h-3 rounded-full transition-all duration-300"
+              style={{ width: `${stats.weeklyConsistency}%` }}
+            ></div>
+          </div>
+          <p className="text-gray-600 mt-2">
+            {stats.weeklyConsistency >= 90 
+              ? 'Excellent consistency! Keep up the great work.'
+              : 'Good progress! Try to maintain consistency.'
+            }
+          </p>
+        </div>
+
+        {/* Recent Sessions */}
+        <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
+          <div className="flex items-center mb-4">
+            <Calendar className="h-6 w-6 text-primary-500 mr-3" />
+            <h3 className="text-lg font-semibold text-gray-900">Recent Sessions</h3>
+          </div>
+          <div className="space-y-3">
+            {stats.recentSessions.map((session) => (
+              <div key={session.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div className="flex items-center">
+                  <div className="w-3 h-3 bg-green-500 rounded-full mr-3"></div>
+                  <span className="text-gray-900 font-medium">
+                    {formatDate(session.scheduled_date)}
+                  </span>
+                </div>
+                <div className="flex items-center text-gray-600">
+                  <span className="mr-2">Completed</span>
+                  <Star className="h-4 w-4 text-yellow-500 mr-1" />
+                  <span className="text-sm text-primary-600 cursor-pointer hover:underline">
+                    Click to view
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Encouragement Message */}
+        <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
+          <div className="text-center">
+            <div className="flex items-center justify-center mb-4">
+              <Sparkles className="h-6 w-6 text-yellow-500 mr-2" />
+              <h3 className="text-xl font-semibold text-gray-900">
+                You're doing amazing, {userName}!
+              </h3>
+            </div>
+            <p className="text-gray-600 mb-4">
+              Your dedication and consistency are paying off. Keep pushing towards your goals!
+            </p>
+            {stats.currentStreak >= 10 && (
+              <div className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-orange-100 text-orange-800">
+                <Flame className="h-4 w-4 mr-1" />
+                Streak Champion!
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Continue Button */}
+        <div className="text-center">
+          <button
+            onClick={() => router.push('/dashboard/athlete')}
+            className="inline-flex items-center px-8 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+          >
+            Continue to Dashboard
+            <ArrowRight className="h-5 w-5 ml-2" />
+          </button>
         </div>
       </div>
     </div>

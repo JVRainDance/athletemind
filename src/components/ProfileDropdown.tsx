@@ -42,12 +42,15 @@ export default function ProfileDropdown({ firstName, lastName }: ProfileDropdown
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center space-x-2 text-white hover:text-gray-200 transition-colors"
+        className="flex items-center space-x-3 text-gray-900 hover:text-gray-700 transition-colors"
       >
-        <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center">
-          <span className="text-primary-600 font-bold text-sm">{initials}</span>
+        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+          athlete
+        </span>
+        <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center border border-gray-200">
+          <span className="text-blue-600 font-bold text-sm">{initials}</span>
         </div>
-        <span className="text-sm font-medium">{firstName}</span>
+        <span className="text-sm font-medium text-gray-700">{firstName}</span>
         <ChevronDown className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
@@ -99,3 +102,4 @@ export default function ProfileDropdown({ firstName, lastName }: ProfileDropdown
     </div>
   )
 }
+

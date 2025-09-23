@@ -24,3 +24,7 @@ ALTER TABLE profiles ALTER COLUMN first_name SET NOT NULL;
 
 -- Drop the old full_name column
 ALTER TABLE profiles DROP COLUMN full_name;
+
+
+
+

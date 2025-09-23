@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
-import { Users, Calendar, TrendingUp, CheckCircle } from 'lucide-react'
+import { Users, Calendar, TrendingUp, CheckCircle, UserPlus } from 'lucide-react'
 import { getFullName } from '@/lib/utils'
 
 export default async function CoachDashboard() {
@@ -24,28 +24,42 @@ export default async function CoachDashboard() {
     redirect('/auth/login')
   }
 
-  // Get all athletes (in a real app, this would be filtered by squad/club)
-  const { data: athletes } = await supabase
-    .from('profiles')
-    .select('id, first_name, last_name, email')
-    .eq('role', 'athlete')
+  // Get coach's athletes through the relationship table - simplified query
+  const { data: coachAthletes, error: coachAthletesError } = await supabase
+    .from('coach_athletes')
+    .select('athlete_id')
+    .eq('coach_id', session.user.id)
+    .eq('is_active', true)
 
-  // Get recent sessions across all athletes
+  const assignedIds = coachAthletes?.map(ca => ca.athlete_id) || []
+  
+  // Get athlete profiles for assigned athletes
+  let athletes = []
+  if (assignedIds.length > 0) {
+    const { data: athleteProfiles } = await supabase
+      .from('profiles')
+      .select('*')
+      .in('id', assignedIds)
+    
+    athletes = athleteProfiles || []
+  }
+
+  // Get recent sessions for coach's athletes
   const { data: recentSessions } = await supabase
     .from('training_sessions')
     .select(`
       *,
       profiles!inner(first_name, last_name)
     `)
-    .in('athlete_id', athletes?.map(a => a.id) || [])
+    .in('athlete_id', athletes.length > 0 ? athletes.map(a => a.id) : [])
     .order('scheduled_date', { ascending: false })
     .limit(10)
 
-  // Get completion stats
+  // Get completion stats for coach's athletes
   const { data: completionStats } = await supabase
     .from('training_sessions')
     .select('status, athlete_id')
-    .in('athlete_id', athletes?.map(a => a.id) || [])
+    .in('athlete_id', athletes.length > 0 ? athletes.map(a => a.id) : [])
     .in('status', ['completed', 'absent'])
 
   const totalSessions = completionStats?.length || 0
@@ -54,17 +68,26 @@ export default async function CoachDashboard() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">
-          Coach Dashboard
-        </h1>
-        <p className="mt-2 text-gray-600">
-          Monitor your athletes&apos; progress and training sessions
-        </p>
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-4 sm:space-y-0">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+            Coach Dashboard
+          </h1>
+          <p className="mt-2 text-gray-600">
+            Monitor your athletes&apos; progress and training sessions
+          </p>
+        </div>
+        <a
+          href="/dashboard/coach/athletes"
+          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+        >
+          <UserPlus className="h-4 w-4 mr-2" />
+          Manage Athletes
+        </a>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
         <div className="bg-white overflow-hidden shadow rounded-lg">
           <div className="p-5">
             <div className="flex items-center">
@@ -153,8 +176,56 @@ export default async function CoachDashboard() {
             Athletes Overview
           </h3>
           {athletes && athletes.length > 0 ? (
-            <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
-              <table className="min-w-full divide-y divide-gray-300">
+            <>
+              {/* Mobile View */}
+              <div className="space-y-4 sm:hidden">
+                {athletes.map((athlete) => {
+                  const athleteSessions = recentSessions?.filter(s => s.athlete_id === athlete.id) || []
+                  const lastSession = athleteSessions[0]
+                  
+                  return (
+                    <div key={athlete.id} className="bg-gray-50 rounded-lg p-4">
+                      <div className="flex items-center space-x-3 mb-3">
+                        <div className="h-10 w-10 rounded-full bg-primary-100 flex items-center justify-center">
+                          <span className="text-sm font-medium text-primary-600">
+                            {athlete.first_name?.[0]}{athlete.last_name?.[0]}
+                          </span>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm font-medium text-gray-900 truncate">
+                            {getFullName(athlete.first_name, athlete.last_name)}
+                          </div>
+                          <div className="text-xs text-gray-500 truncate">
+                            {athlete.email}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="mb-3">
+                        {lastSession ? (
+                          <div className="text-sm text-gray-900">
+                            <div className="font-medium">Last Session:</div>
+                            <div className="text-xs text-gray-500">
+                              {new Date(lastSession.scheduled_date).toLocaleDateString()} - {lastSession.status}
+                            </div>
+                          </div>
+                        ) : (
+                          <span className="text-sm text-gray-500">No sessions yet</span>
+                        )}
+                      </div>
+                      <a
+                        href={`/dashboard/coach/athletes/${athlete.id}`}
+                        className="text-primary-600 hover:text-primary-900 text-sm font-medium"
+                      >
+                        View Details →
+                      </a>
+                    </div>
+                  )
+                })}
+              </div>
+              
+              {/* Desktop View */}
+              <div className="hidden sm:block overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
+                <table className="min-w-full divide-y divide-gray-300">
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -215,7 +286,8 @@ export default async function CoachDashboard() {
                   })}
                 </tbody>
               </table>
-            </div>
+              </div>
+            </>
           ) : (
             <div className="text-center py-6">
               <Users className="mx-auto h-12 w-12 text-gray-400" />

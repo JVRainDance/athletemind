@@ -1,9 +1,12 @@
 import { createClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { Calendar, Target, TrendingUp, Clock, CheckCircle, Plus, X, Star, Rocket, Settings, User, LogOut, ChevronDown } from 'lucide-react'
+import { Calendar, Target, TrendingUp, Clock, CheckCircle, Plus, X, Star, Rocket, BarChart3 } from 'lucide-react'
 import { getFullName } from '@/lib/utils'
-import ProfileDropdown from '@/components/ProfileDropdown'
+import { getSessionButtonState } from '@/lib/session-utils'
+import AbsenceButton from '@/components/AbsenceButton'
+import ExtraSessionButton from '@/components/ExtraSessionButton'
+import SessionCountdown from '@/components/SessionCountdown'
 
 export default async function AthleteDashboard() {
   const supabase = createClient()
@@ -26,61 +29,85 @@ export default async function AthleteDashboard() {
     redirect('/auth/login')
   }
 
-  // Get next training session
+  // Get next training session (exclude completed sessions)
   const { data: nextSession } = await supabase
     .from('training_sessions')
     .select('*')
     .eq('athlete_id', session.user.id)
     .gte('scheduled_date', new Date().toISOString())
+    .neq('status', 'completed')
     .order('scheduled_date', { ascending: true })
     .limit(1)
     .single()
 
+  // Get check-in for next session if it exists
+  let nextSessionCheckin = null
+  if (nextSession) {
+    const { data: checkinData } = await supabase
+      .from('pre_training_checkins')
+      .select('*')
+      .eq('session_id', nextSession.id)
+      .maybeSingle()
+    nextSessionCheckin = checkinData
+  }
+
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-start">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">
-            Hi {getFullName(profile.first_name, profile.last_name)}!
-          </h1>
-          <p className="mt-2 text-gray-600">
-            Ready to show up, reflect, and build momentum?
-          </p>
-        </div>
-        <ProfileDropdown 
-          firstName={profile.first_name} 
-          lastName={profile.last_name} 
-        />
+      <div>
+        <p className="mt-2 text-gray-600">
+          Ready to show up, reflect, and build momentum?
+        </p>
       </div>
 
       {/* Next Training Session Card */}
-      <div className="bg-white shadow rounded-lg">
-        <div className="px-4 py-5 sm:p-6">
+      <div className="bg-white shadow-lg rounded-lg border border-gray-200">
+        <div className="px-4 py-5 sm:p-6 text-center">
           <h2 className="text-lg leading-6 font-medium text-gray-900 mb-4">
             Your next available training is...
           </h2>
           {nextSession ? (
             <div className="space-y-4">
               <div>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-xl sm:text-2xl font-bold text-gray-900">
                   {new Date(nextSession.scheduled_date).toLocaleDateString('en-US', {
                     weekday: 'long',
                     month: 'short',
                     day: 'numeric'
                   })}
                 </p>
-                <p className="text-lg text-primary-600 font-medium">
+                <p className="text-base sm:text-lg text-primary-600 font-medium">
                   {nextSession.start_time} - {nextSession.end_time}
                 </p>
               </div>
-              <Link
-                href={`/dashboard/athlete/sessions/${nextSession.id}`}
-                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
-              >
-                <CheckCircle className="w-4 h-4 mr-2" />
-                <Rocket className="w-4 h-4 mr-2" />
-                Start Pre-Training Check-in
-              </Link>
+              
+              {/* Countdown Timer */}
+              <div className="flex justify-center">
+                <SessionCountdown 
+                  sessionDate={nextSession.scheduled_date}
+                  sessionTime={nextSession.start_time}
+                />
+              </div>
+              
+              {(() => {
+                const buttonState = getSessionButtonState(nextSession, nextSessionCheckin)
+                return (
+                  <div className="flex justify-center">
+                    <Link
+                      href={buttonState.href}
+                      className={`inline-flex items-center px-3 py-2 sm:px-4 sm:py-2 border border-transparent text-sm font-medium rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 ${
+                        buttonState.disabled
+                          ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
+                          : 'text-white bg-primary-600 hover:bg-primary-700'
+                      }`}
+                    >
+                      <CheckCircle className="w-4 h-4 mr-2" />
+                      <Rocket className="w-4 h-4 mr-2" />
+                      <span className="hidden sm:inline">{buttonState.text}</span>
+                      <span className="sm:hidden">Start</span>
+                    </Link>
+                  </div>
+                )
+              })()}
             </div>
           ) : (
             <p className="text-gray-500">No upcoming training sessions scheduled</p>
@@ -89,18 +116,21 @@ export default async function AthleteDashboard() {
       </div>
 
       {/* Training Actions Card */}
-      <div className="bg-white shadow rounded-lg">
+      <div className="bg-white shadow-lg rounded-lg border border-gray-200">
         <div className="px-4 py-5 sm:p-6">
           <h2 className="text-lg leading-6 font-medium text-gray-900 mb-4">Training Actions</h2>
-          <div className="flex space-x-4 mb-4">
-            <button className="flex-1 inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
-              Record an absence
-            </button>
-            <button className="flex-1 inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
-              Add an extra session
-            </button>
+          <div className="flex flex-col sm:flex-row gap-3 mb-4">
+            <AbsenceButton athleteId={session.user.id} />
+            <ExtraSessionButton athleteId={session.user.id} />
+            <Link
+              href="/dashboard/athlete/progress"
+              className="inline-flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+            >
+              <BarChart3 className="w-4 h-4 mr-2" />
+              View Progress
+            </Link>
           </div>
-          <div className="flex items-center space-x-2">
+          <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-2">
             <span className="text-sm text-gray-600">Theme:</span>
             <select className="border border-gray-300 rounded-md px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
               <option>Zelda</option>
@@ -112,7 +142,7 @@ export default async function AthleteDashboard() {
       </div>
 
       {/* Rewards Card */}
-      <div className="bg-white shadow rounded-lg">
+      <div className="bg-white shadow-lg rounded-lg border border-gray-200">
         <div className="px-4 py-5 sm:p-6">
           <div className="flex items-center space-x-2 mb-4">
             <h2 className="text-lg leading-6 font-medium text-gray-900">Your Next Reward</h2>
@@ -139,32 +169,32 @@ export default async function AthleteDashboard() {
       </div>
 
       {/* Quick Actions Card */}
-      <div className="bg-white shadow rounded-lg">
+      <div className="bg-white shadow-lg rounded-lg border border-gray-200">
         <div className="px-4 py-5 sm:p-6">
           <h2 className="text-lg leading-6 font-medium text-gray-900 mb-4">Would you like to...</h2>
           <div className="space-y-4">
             <Link
               href="/dashboard/athlete/goals"
-              className="flex items-center space-x-4 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+              className="flex items-center space-x-3 sm:space-x-4 p-3 sm:p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
             >
-              <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
-                <Target className="w-6 h-6 text-red-600" />
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-red-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                <Target className="w-5 h-5 sm:w-6 sm:h-6 text-red-600" />
               </div>
-              <div>
-                <p className="font-medium text-gray-900">Set your daily training goals in advance?</p>
-                <p className="text-sm text-gray-600">Plan your objectives for upcoming sessions</p>
+              <div className="min-w-0 flex-1">
+                <p className="font-medium text-gray-900 text-sm sm:text-base">Set your daily training goals in advance?</p>
+                <p className="text-xs sm:text-sm text-gray-600">Plan your objectives for upcoming sessions</p>
               </div>
             </Link>
             <Link
               href="/dashboard/athlete/progress"
-              className="flex items-center space-x-4 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+              className="flex items-center space-x-3 sm:space-x-4 p-3 sm:p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
             >
-              <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
-                <TrendingUp className="w-6 h-6 text-red-600" />
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-red-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6 text-red-600" />
               </div>
-              <div>
-                <p className="font-medium text-gray-900">View your training journey so far?</p>
-                <p className="text-sm text-gray-600">Review your progress and achievements</p>
+              <div className="min-w-0 flex-1">
+                <p className="font-medium text-gray-900 text-sm sm:text-base">View your training journey so far?</p>
+                <p className="text-xs sm:text-sm text-gray-600">Review your progress and achievements</p>
               </div>
             </Link>
           </div>

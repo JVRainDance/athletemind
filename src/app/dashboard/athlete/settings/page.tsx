@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
 import { Settings, User, Bell, Shield, Palette } from 'lucide-react'
+import BackButton from '@/components/BackButton'
 
 export default async function SettingsPage() {
   const supabase = createClient()
@@ -25,11 +26,14 @@ export default async function SettingsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">Settings</h1>
-        <p className="mt-2 text-gray-600">
-          Manage your account settings and preferences
-        </p>
+      <div className="flex items-center space-x-4">
+        <BackButton href="/dashboard/athlete" />
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Settings</h1>
+          <p className="mt-2 text-gray-600">
+            Manage your account settings and preferences
+          </p>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -184,3 +188,6 @@ export default async function SettingsPage() {
     </div>
   )
 }
+
+
+

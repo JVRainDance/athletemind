@@ -197,3 +197,7 @@ CREATE POLICY "Athletes can manage own reflections" ON session_reflections FOR A
         AND ts.athlete_id = auth.uid()
     )
 );
+
+
+
+

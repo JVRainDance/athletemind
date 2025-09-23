@@ -2,8 +2,14 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
-import { CheckCircle, XCircle, Minus } from 'lucide-react'
+import { createClient } from '@/lib/supabase-client'
+import { Database } from '@/types/database'
+import { CheckCircle, Target, Star, ArrowRight, Trophy } from 'lucide-react'
+import BackButton from '@/components/BackButton'
+
+type Session = Database['public']['Tables']['training_sessions']['Row']
+type Goal = Database['public']['Tables']['session_goals']['Row']
+type Reflection = Database['public']['Tables']['session_reflections']['Row']
 
 interface PageProps {
   params: {
@@ -11,31 +17,30 @@ interface PageProps {
   }
 }
 
-interface Goal {
-  id: string
-  goal_text: string
-  achieved: boolean | null
-}
-
 export default function ReflectionPage({ params }: PageProps) {
-  const [session, setSession] = useState<any>(null)
+  const router = useRouter()
+  const supabase = createClient()
+  
+  const [session, setSession] = useState<Session | null>(null)
   const [goals, setGoals] = useState<Goal[]>([])
+  const [existingReflection, setExistingReflection] = useState<Reflection | null>(null)
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
-  const [reflection, setReflection] = useState({
-    what_went_well: '',
-    what_didnt_go_well: '',
-    what_to_do_different: '',
-    most_proud_of: '',
-    overall_rating: 3
-  })
-  const router = useRouter()
+  
+  // Form state
+  const [goalAchievements, setGoalAchievements] = useState<{ [key: string]: 'got_it' | 'not_quite' | 'no' }>({})
+  const [whatWentWell, setWhatWentWell] = useState('')
+  const [whatDidntGoWell, setWhatDidntGoWell] = useState('')
+  const [whatToDoDifferent, setWhatToDoDifferent] = useState('')
+  const [mostProudOf, setMostProudOf] = useState('')
+  const [overallRating, setOverallRating] = useState(0)
+  const [rewardEarned, setRewardEarned] = useState(false)
 
   useEffect(() => {
-    fetchSessionData()
-  }, [])
+    loadSessionData()
+  }, [params.id])
 
-  const fetchSessionData = async () => {
+  const loadSessionData = async () => {
     try {
       const { data: { session: authSession } } = await supabase.auth.getSession()
       if (!authSession) {
@@ -43,7 +48,7 @@ export default function ReflectionPage({ params }: PageProps) {
         return
       }
 
-      // Fetch session details
+      // Load session details
       const { data: sessionData, error: sessionError } = await supabase
         .from('training_sessions')
         .select('*')
@@ -58,7 +63,7 @@ export default function ReflectionPage({ params }: PageProps) {
 
       setSession(sessionData)
 
-      // Fetch goals
+      // Load goals
       const { data: goalsData } = await supabase
         .from('session_goals')
         .select('*')
@@ -66,47 +71,69 @@ export default function ReflectionPage({ params }: PageProps) {
         .order('created_at')
 
       setGoals(goalsData || [])
+
+      // Load existing reflection
+      const { data: reflectionData } = await supabase
+        .from('session_reflections')
+        .select('*')
+        .eq('session_id', params.id)
+        .single()
+
+      if (reflectionData) {
+        setExistingReflection(reflectionData)
+        setWhatWentWell(reflectionData.what_went_well)
+        setWhatDidntGoWell(reflectionData.what_didnt_go_well)
+        setWhatToDoDifferent(reflectionData.what_to_do_different)
+        setMostProudOf(reflectionData.most_proud_of)
+        setOverallRating(reflectionData.overall_rating)
+      }
+
     } catch (error) {
-      console.error('Error:', error)
+      console.error('Error loading session data:', error)
     } finally {
       setLoading(false)
     }
   }
 
-  const handleGoalUpdate = async (goalId: string, achieved: boolean | null) => {
-    try {
-      const { error } = await supabase
-        .from('session_goals')
-        .update({ achieved })
-        .eq('id', goalId)
+  const handleSubmit = async () => {
+    if (!session) return
 
-      if (error) {
-        console.error('Error updating goal:', error)
-      } else {
-        setGoals(goals.map(goal => 
-          goal.id === goalId ? { ...goal, achieved } : goal
-        ))
-      }
-    } catch (error) {
-      console.error('Error:', error)
+    // Validate required fields
+    if (!whatWentWell.trim() || !whatDidntGoWell.trim() || !whatToDoDifferent.trim() || !mostProudOf.trim()) {
+      alert('Please fill in all reflection questions.')
+      return
     }
-  }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    if (overallRating === 0) {
+      alert('Please rate your overall training session.')
+      return
+    }
+
     setSubmitting(true)
 
     try {
-      const { data: { session: authSession } } = await supabase.auth.getSession()
-      if (!authSession) return
+      // Update goal achievements
+      for (const [goalId, achievement] of Object.entries(goalAchievements)) {
+        const achieved = achievement === 'got_it' ? true : false
+        await supabase
+          .from('session_goals')
+          .update({ achieved })
+          .eq('id', goalId)
+      }
 
       // Save reflection
+      const reflectionData = {
+        session_id: params.id,
+        what_went_well: whatWentWell.trim(),
+        what_didnt_go_well: whatDidntGoWell.trim(),
+        what_to_do_different: whatToDoDifferent.trim(),
+        most_proud_of: mostProudOf.trim(),
+        overall_rating: overallRating
+      }
+
       const { error: reflectionError } = await supabase
         .from('session_reflections')
-        .insert({
-          session_id: params.id,
-          ...reflection
-        })
+        .upsert(reflectionData)
 
       if (reflectionError) {
         console.error('Error saving reflection:', reflectionError)
@@ -121,117 +148,125 @@ export default function ReflectionPage({ params }: PageProps) {
         .eq('id', params.id)
 
       if (sessionError) {
-        console.error('Error updating session:', sessionError)
-        alert('Error updating session. Please try again.')
-        return
+        console.error('Error updating session status:', sessionError)
       }
 
-      // Redirect to stats/progress page
-      router.push(`/dashboard/athlete/sessions/${params.id}?completed=true`)
+      // Navigate to progress page with celebration
+      router.push('/dashboard/athlete/progress?fromSession=true')
+
     } catch (error) {
-      console.error('Error:', error)
-      alert('An unexpected error occurred.')
+      console.error('Error submitting reflection:', error)
+      alert('Error submitting reflection. Please try again.')
     } finally {
       setSubmitting(false)
     }
   }
 
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    })
+  }
+
+  const getAchievementColor = (achievement: string) => {
+    switch (achievement) {
+      case 'got_it':
+        return 'bg-green-100 text-green-800 border-green-200'
+      case 'not_quite':
+        return 'bg-yellow-100 text-yellow-800 border-yellow-200'
+      case 'no':
+        return 'bg-red-100 text-red-800 border-red-200'
+      default:
+        return 'bg-gray-100 text-gray-800 border-gray-200'
+    }
+  }
+
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-lg text-gray-600">Loading...</div>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading reflection...</p>
+        </div>
       </div>
     )
   }
 
   if (!session) {
     return (
-      <div className="text-center py-6">
-        <p className="text-gray-600">Session not found.</p>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-gray-600">Session not found</p>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="bg-white shadow rounded-lg p-6">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            🎉 Great job completing your training!
-          </h1>
-          <p className="text-gray-600">
-            Take a moment to reflect on your session and set yourself up for future success.
-          </p>
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Back Button */}
+        <div className="mb-6">
+          <BackButton href={`/dashboard/athlete/sessions/${params.id}`} />
         </div>
-      </div>
+        
+        {/* Header */}
+        <div className="text-center mb-8">
+          <div className="bg-white rounded-lg shadow-sm p-6">
+            <div className="flex items-center justify-center mb-4">
+              <Trophy className="h-8 w-8 text-yellow-500 mr-2" />
+              <h1 className="text-3xl font-bold text-gray-900">
+                Yay, you did it! 🎉
+              </h1>
+            </div>
+            <h2 className="text-xl font-semibold text-gray-900 mb-2">
+              {formatDate(session.scheduled_date)}
+            </h2>
+            <p className="text-lg text-primary-600 font-medium">
+              Training Session Complete
+            </p>
+          </div>
+        </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
         {/* Goals Review */}
-        <div className="bg-white shadow rounded-lg p-6">
-          <h2 className="text-lg font-medium text-gray-900 mb-4">Goal Review</h2>
-          <p className="text-sm text-gray-600 mb-4">
-            How did you do with your training goals today?
-          </p>
-          
-          {goals.length > 0 ? (
+        {goals.length > 0 && (
+          <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+            <div className="flex items-center mb-4">
+              <Target className="h-5 w-5 text-primary-600 mr-2" />
+              <h3 className="text-lg font-semibold text-gray-900">How did your goals go?</h3>
+            </div>
+            
             <div className="space-y-3">
               {goals.map((goal) => (
-                <div key={goal.id} className="border border-gray-200 rounded-lg p-4">
-                  <p className="text-sm font-medium text-gray-900 mb-3">
-                    {goal.goal_text}
-                  </p>
-                  <div className="flex space-x-3">
-                    <button
-                      type="button"
-                      onClick={() => handleGoalUpdate(goal.id, true)}
-                      className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                        goal.achieved === true
-                          ? 'bg-green-100 text-green-800 border-2 border-green-500'
-                          : 'bg-gray-50 text-gray-700 border border-gray-300 hover:bg-green-50'
-                      }`}
-                    >
-                      <CheckCircle className="h-4 w-4" />
-                      <span>Got it!</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleGoalUpdate(goal.id, false)}
-                      className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                        goal.achieved === false
-                          ? 'bg-red-100 text-red-800 border-2 border-red-500'
-                          : 'bg-gray-50 text-gray-700 border border-gray-300 hover:bg-red-50'
-                      }`}
-                    >
-                      <XCircle className="h-4 w-4" />
-                      <span>Not quite</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleGoalUpdate(goal.id, null)}
-                      className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                        goal.achieved === null
-                          ? 'bg-yellow-100 text-yellow-800 border-2 border-yellow-500'
-                          : 'bg-gray-50 text-gray-700 border border-gray-300 hover:bg-yellow-50'
-                      }`}
-                    >
-                      <Minus className="h-4 w-4" />
-                      <span>Partially</span>
-                    </button>
+                <div key={goal.id} className="flex items-center justify-between p-3 rounded-lg border border-gray-200">
+                  <p className="flex-1 text-sm text-gray-700">{goal.goal_text}</p>
+                  <div className="flex space-x-2">
+                    {['got_it', 'not_quite', 'no'].map((option) => (
+                      <button
+                        key={option}
+                        onClick={() => setGoalAchievements(prev => ({ ...prev, [goal.id]: option as any }))}
+                        className={`px-3 py-1 text-xs font-medium rounded-full border ${
+                          goalAchievements[goal.id] === option
+                            ? getAchievementColor(option)
+                            : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'
+                        }`}
+                      >
+                        {option === 'got_it' ? 'Got it!' : option === 'not_quite' ? 'Not quite' : 'No'}
+                      </button>
+                    ))}
                   </div>
                 </div>
               ))}
             </div>
-          ) : (
-            <div className="text-center py-4">
-              <p className="text-sm text-gray-500">No goals were set for this session</p>
-            </div>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Reflection Questions */}
-        <div className="bg-white shadow rounded-lg p-6">
-          <h2 className="text-lg font-medium text-gray-900 mb-4">Training Reflection</h2>
+        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Training Reflection</h3>
           
           <div className="space-y-6">
             <div>
@@ -239,104 +274,108 @@ export default function ReflectionPage({ params }: PageProps) {
                 What went well during training today?
               </label>
               <textarea
-                value={reflection.what_went_well}
-                onChange={(e) => setReflection({...reflection, what_went_well: e.target.value})}
-                placeholder="Think about the positive aspects of your training session..."
+                value={whatWentWell}
+                onChange={(e) => setWhatWentWell(e.target.value)}
                 rows={3}
-                className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
-                required
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                placeholder="Share what went well..."
               />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                What didn&apos;t go well or could be improved?
+                What didn't go well or could be improved?
               </label>
               <textarea
-                value={reflection.what_didnt_go_well}
-                onChange={(e) => setReflection({...reflection, what_didnt_go_well: e.target.value})}
-                placeholder="Be honest about challenges and areas for improvement..."
+                value={whatDidntGoWell}
+                onChange={(e) => setWhatDidntGoWell(e.target.value)}
                 rows={3}
-                className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
-                required
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                placeholder="What could be better next time..."
               />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                What will you do differently next time to help you move forwards?
+                What will you do differently next time?
               </label>
               <textarea
-                value={reflection.what_to_do_different}
-                onChange={(e) => setReflection({...reflection, what_to_do_different: e.target.value})}
-                placeholder="Think about specific actions you can take in future sessions..."
+                value={whatToDoDifferent}
+                onChange={(e) => setWhatToDoDifferent(e.target.value)}
                 rows={3}
-                className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
-                required
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                placeholder="Your plan for improvement..."
               />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                What are you most proud of from today&apos;s training?
+                What are you most proud of from today's training?
               </label>
               <textarea
-                value={reflection.most_proud_of}
-                onChange={(e) => setReflection({...reflection, most_proud_of: e.target.value})}
-                placeholder="Celebrate your achievements, no matter how small..."
+                value={mostProudOf}
+                onChange={(e) => setMostProudOf(e.target.value)}
                 rows={3}
-                className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
-                required
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                placeholder="Celebrate your achievements..."
               />
             </div>
+          </div>
+        </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Overall, how was your training today?
-              </label>
-              <div className="flex items-center space-x-2">
-                {[1, 2, 3, 4, 5].map((rating) => (
-                  <button
-                    key={rating}
-                    type="button"
-                    onClick={() => setReflection({...reflection, overall_rating: rating})}
-                    className={`w-10 h-10 rounded-full border-2 flex items-center justify-center text-sm font-medium transition-colors ${
-                      rating <= reflection.overall_rating
-                        ? 'bg-primary-500 border-primary-500 text-white'
-                        : 'bg-white border-gray-300 text-gray-700 hover:border-primary-500'
-                    }`}
-                  >
-                    {rating}
-                  </button>
-                ))}
-                <span className="ml-3 text-sm text-gray-600">
-                  {reflection.overall_rating === 1 && 'Poor'}
-                  {reflection.overall_rating === 2 && 'Fair'}
-                  {reflection.overall_rating === 3 && 'Good'}
-                  {reflection.overall_rating === 4 && 'Very Good'}
-                  {reflection.overall_rating === 5 && 'Excellent'}
-                </span>
-              </div>
-            </div>
+        {/* Overall Rating */}
+        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Overall Training Rating</h3>
+          <p className="text-sm text-gray-600 mb-4">How would you rate today's training overall?</p>
+          
+          <div className="flex items-center space-x-2">
+            {[1, 2, 3, 4, 5].map((level) => (
+              <button
+                key={level}
+                onClick={() => setOverallRating(level)}
+                className={`w-12 h-12 rounded-full flex items-center justify-center text-sm font-medium transition-colors ${
+                  overallRating >= level
+                    ? 'bg-green-400 text-green-900'
+                    : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+                }`}
+              >
+                {level}
+              </button>
+            ))}
+            {overallRating > 0 && (
+              <span className="ml-3 text-sm text-gray-600">
+                {overallRating}/5
+              </span>
+            )}
           </div>
         </div>
 
         {/* Submit Button */}
-        <div className="bg-white shadow rounded-lg p-6">
-          <div className="text-center">
-            <p className="text-sm text-gray-600 mb-4">
-              Ready to complete your training reflection?
-            </p>
-            <button
-              type="submit"
-              disabled={submitting}
-              className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-secondary-600 hover:bg-secondary-700 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {submitting ? 'Saving...' : 'Complete Journal Entry'}
-            </button>
-          </div>
+        <div className="text-center">
+          <button
+            onClick={handleSubmit}
+            disabled={submitting}
+            className={`inline-flex items-center px-8 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white ${
+              !submitting
+                ? 'bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500'
+                : 'bg-gray-400 cursor-not-allowed'
+            }`}
+          >
+            {submitting ? (
+              <>
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                Completing Journal...
+              </>
+            ) : (
+              <>
+                <CheckCircle className="h-5 w-5 mr-2" />
+                Complete Journal Entry
+                <ArrowRight className="h-5 w-5 ml-2" />
+              </>
+            )}
+          </button>
         </div>
-      </form>
+      </div>
     </div>
   )
 }

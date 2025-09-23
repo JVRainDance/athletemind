@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase-client'
+import { generateSessionsForAthlete } from '@/lib/session-generation'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -42,6 +43,18 @@ export default function LoginPage() {
           .single()
 
         console.log('Profile:', profile)
+
+        // Generate sessions for athletes on login
+        if (profile?.role === 'athlete') {
+          console.log('Generating sessions for athlete...')
+          try {
+            await generateSessionsForAthlete(data.user.id)
+            console.log('Sessions generated successfully')
+          } catch (error) {
+            console.error('Error generating sessions:', error)
+            // Don't block login if session generation fails
+          }
+        }
 
         // Redirect based on role
         if (profile?.role === 'athlete') {

@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { formatDate, formatTime } from '@/lib/utils'
+import { getSessionButtonState } from '@/lib/session-utils'
 import { CheckCircle, Clock, Calendar, Target, MessageSquare } from 'lucide-react'
 
 interface PageProps {
@@ -45,7 +46,7 @@ export default async function SessionDetailPage({ params }: PageProps) {
     .from('pre_training_checkins')
     .select('*')
     .eq('session_id', params.id)
-    .single()
+    .maybeSingle()
 
   // Fetch training notes
   const { data: notes } = await supabase
@@ -75,6 +76,7 @@ export default async function SessionDetailPage({ params }: PageProps) {
         return 'bg-yellow-100 text-yellow-800'
     }
   }
+
 
   return (
     <div className="space-y-6">
@@ -137,7 +139,33 @@ export default async function SessionDetailPage({ params }: PageProps) {
         )}
       </div>
 
-      {/* Pre-Training Check-in */}
+      {/* Session Action Button */}
+      <div className="bg-white shadow rounded-lg p-6">
+        <h2 className="text-lg font-medium text-gray-900 mb-4">Session Actions</h2>
+        {(() => {
+          const buttonState = getSessionButtonState(trainingSession, checkin)
+          return (
+            <div>
+              <p className="text-gray-600 mb-4">
+                {buttonState.description}
+              </p>
+              <Link
+                href={buttonState.href}
+                className={`inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm ${
+                  buttonState.disabled
+                    ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
+                    : 'text-white bg-primary-600 hover:bg-primary-700'
+                }`}
+              >
+                <CheckCircle className="w-4 h-4 mr-2" />
+                {buttonState.text}
+              </Link>
+            </div>
+          )
+        })()}
+      </div>
+
+      {/* Pre-Training Check-in Display */}
       {checkin && (
         <div className="bg-white shadow rounded-lg p-6">
           <h2 className="text-lg font-medium text-gray-900 mb-4">Pre-Training Check-in</h2>
@@ -171,6 +199,13 @@ export default async function SessionDetailPage({ params }: PageProps) {
               </div>
             </div>
           </div>
+          {checkin.reward_criteria && (
+            <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+              <p className="text-sm text-yellow-800">
+                <strong>Reward Goal:</strong> {checkin.reward_criteria}
+              </p>
+            </div>
+          )}
         </div>
       )}
 

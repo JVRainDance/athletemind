@@ -2,9 +2,10 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@/lib/supabase-client'
 import { formatDate } from '@/lib/utils'
 import { Plus, Target, Calendar, Clock } from 'lucide-react'
+import BackButton from '@/components/BackButton'
 
 interface UpcomingSession {
   id: string
@@ -31,6 +32,7 @@ export default function GoalsPage() {
 
   const fetchUpcomingSessions = async () => {
     try {
+      const supabase = createClient()
       const { data: { session } } = await supabase.auth.getSession()
       if (!session) {
         router.push('/auth/login')
@@ -88,6 +90,7 @@ export default function GoalsPage() {
     }
 
     try {
+      const supabase = createClient()
       const { error } = await supabase
         .from('session_goals')
         .insert({
@@ -115,6 +118,7 @@ export default function GoalsPage() {
     }
 
     try {
+      const supabase = createClient()
       const { error } = await supabase
         .from('session_goals')
         .delete()
@@ -142,11 +146,14 @@ export default function GoalsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">Training Goals</h1>
-        <p className="mt-2 text-gray-600">
-          Set goals for your upcoming training sessions (up to 7 days in advance)
-        </p>
+      <div className="flex items-center space-x-4">
+        <BackButton href="/dashboard/athlete" />
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Training Goals</h1>
+          <p className="mt-2 text-gray-600">
+            Set goals for your upcoming training sessions (up to 7 days in advance)
+          </p>
+        </div>
       </div>
 
       {upcomingSessions.length > 0 ? (
@@ -302,3 +309,6 @@ export default function GoalsPage() {
     </div>
   )
 }
+
+
+
