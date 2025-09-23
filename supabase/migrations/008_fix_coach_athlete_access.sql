@@ -15,3 +15,4 @@ CREATE POLICY "Coaches can view all athletes for assignment" ON profiles
     FOR SELECT USING (
         role = 'athlete'
     );
+

@@ -28,3 +28,4 @@ SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 1. Set Site URL to your production domain
 2. Add redirect URLs for authentication
 3. Configure RLS policies for production
+

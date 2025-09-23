@@ -157,3 +157,4 @@ If you encounter issues:
 2. Verify environment variables
 3. Test authentication flow step by step
 4. Check browser console for errors
+
