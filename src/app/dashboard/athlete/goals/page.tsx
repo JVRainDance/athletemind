@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase-client'
 import { formatDate } from '@/lib/utils'
@@ -28,9 +28,9 @@ export default function GoalsPage() {
 
   useEffect(() => {
     fetchUpcomingSessions()
-  }, [])
+  }, [fetchUpcomingSessions])
 
-  const fetchUpcomingSessions = async () => {
+  const fetchUpcomingSessions = useCallback(async () => {
     try {
       const supabase = createClient()
       const { data: { session } } = await supabase.auth.getSession()
@@ -81,7 +81,7 @@ export default function GoalsPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [router])
 
   const handleAddGoal = async (sessionId: string) => {
     if (!newGoal.trim()) {

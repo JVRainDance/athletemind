@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase-client'
 import { Database } from '@/types/database'
@@ -45,7 +45,7 @@ export default function PreTrainingCheckinPage({ params }: PageProps) {
 
   useEffect(() => {
     loadSessionData()
-  }, [params.id])
+  }, [params.id, loadSessionData])
 
   useEffect(() => {
     // Check if we're within 1 hour of session start
@@ -72,7 +72,7 @@ export default function PreTrainingCheckinPage({ params }: PageProps) {
     }
   }, [session])
 
-  const loadSessionData = async () => {
+  const loadSessionData = useCallback(async () => {
     try {
       const { data: { session: authSession } } = await supabase.auth.getSession()
       if (!authSession) {
@@ -172,7 +172,7 @@ export default function PreTrainingCheckinPage({ params }: PageProps) {
     } finally {
       setLoading(false)
     }
-  }
+  }, [params.id, router])
 
   const handleSubmit = async () => {
     if (!session || !canStartCheckin) return

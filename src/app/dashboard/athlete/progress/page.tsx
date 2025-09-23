@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase-client'
 import { Database } from '@/types/database'
@@ -37,9 +37,9 @@ export default function AthleteProgressPage() {
     if (fromSession === 'true') {
       setShowCelebration(true)
     }
-  }, [searchParams])
+  }, [searchParams, loadProgressData])
 
-  const loadProgressData = async () => {
+  const loadProgressData = useCallback(async () => {
     try {
       const { data: { session: authSession } } = await supabase.auth.getSession()
       if (!authSession) {
@@ -118,7 +118,7 @@ export default function AthleteProgressPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [router])
 
   const calculateStreak = (sessions: Session[]) => {
     if (sessions.length === 0) return 0
@@ -153,10 +153,10 @@ export default function AthleteProgressPage() {
         
         if (daysBetween === 1) {
           streak++
-        } else {
-          break
-        }
+      } else {
+        break
       }
+    }
     }
     
     return streak
@@ -244,8 +244,8 @@ export default function AthleteProgressPage() {
         {/* Back Button */}
         <div className="mb-6">
           <BackButton href="/dashboard/athlete" />
-        </div>
-        
+      </div>
+
         {/* Header */}
         <div className="text-center mb-8">
           {showCelebration ? (
@@ -257,9 +257,9 @@ export default function AthleteProgressPage() {
                 </h1>
               </div>
               <p className="text-lg text-gray-600">
-                Here's how you're progressing, {userName}
+                Here&apos;s how you&apos;re progressing, {userName}
               </p>
-            </div>
+              </div>
           ) : (
             <div className="bg-white rounded-lg shadow-sm p-6">
               <h1 className="text-3xl font-bold text-gray-900 mb-2">
@@ -279,24 +279,24 @@ export default function AthleteProgressPage() {
             <div className="flex items-center mb-4">
               <Flame className="h-6 w-6 text-orange-500 mr-3" />
               <h3 className="text-lg font-semibold text-gray-900">Current Streak</h3>
-            </div>
+              </div>
             <div className="text-3xl font-bold text-orange-500 mb-2">
               {stats.currentStreak} sessions
-            </div>
+              </div>
             <p className="text-gray-600">In a row! Keep it going!</p>
-          </div>
+        </div>
 
           {/* Total Stars */}
           <div className="bg-white rounded-lg shadow-sm p-6">
             <div className="flex items-center mb-4">
               <Star className="h-6 w-6 text-yellow-500 mr-3" />
               <h3 className="text-lg font-semibold text-gray-900">Total Stars Earned</h3>
-            </div>
+              </div>
             <div className="text-3xl font-bold text-yellow-500 mb-2">
               {stats.totalStars} ⭐
-            </div>
+              </div>
             <p className="text-gray-600">Amazing progress!</p>
-          </div>
+        </div>
 
           {/* Next Reward Progress */}
           {nextReward && (
@@ -313,14 +313,14 @@ export default function AthleteProgressPage() {
                   className="bg-primary-500 h-2 rounded-full transition-all duration-300"
                   style={{ width: `${Math.min(100, (stats.totalStars / nextReward.stars_required) * 100)}%` }}
                 ></div>
-              </div>
+            </div>
               <p className="text-gray-600">
                 {nextReward.stars_required - stats.totalStars > 0 
                   ? `${nextReward.stars_required - stats.totalStars} more stars to go!`
                   : 'Reward unlocked!'
                 }
               </p>
-            </div>
+          </div>
           )}
 
           {/* Goal Completion */}
@@ -341,50 +341,50 @@ export default function AthleteProgressPage() {
           <div className="flex items-center mb-4">
             <BarChart3 className="h-6 w-6 text-primary-500 mr-3" />
             <h3 className="text-lg font-semibold text-gray-900">Last 4 Weeks Consistency</h3>
-          </div>
+            </div>
           <div className="text-3xl font-bold text-primary-600 mb-2">
             {Math.round(stats.weeklyConsistency)}%
-          </div>
+            </div>
           <p className="text-gray-600 mb-4">of scheduled sessions logged.</p>
           <div className="w-full bg-gray-200 rounded-full h-3">
             <div 
               className="bg-primary-500 h-3 rounded-full transition-all duration-300"
               style={{ width: `${stats.weeklyConsistency}%` }}
             ></div>
-          </div>
+            </div>
           <p className="text-gray-600 mt-2">
             {stats.weeklyConsistency >= 90 
               ? 'Excellent consistency! Keep up the great work.'
               : 'Good progress! Try to maintain consistency.'
             }
           </p>
-        </div>
+      </div>
 
-        {/* Recent Sessions */}
+      {/* Recent Sessions */}
         <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
           <div className="flex items-center mb-4">
             <Calendar className="h-6 w-6 text-primary-500 mr-3" />
             <h3 className="text-lg font-semibold text-gray-900">Recent Sessions</h3>
-          </div>
-          <div className="space-y-3">
+        </div>
+            <div className="space-y-3">
             {stats.recentSessions.map((session) => (
               <div key={session.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                 <div className="flex items-center">
                   <div className="w-3 h-3 bg-green-500 rounded-full mr-3"></div>
                   <span className="text-gray-900 font-medium">
-                    {formatDate(session.scheduled_date)}
+                      {formatDate(session.scheduled_date)}
                   </span>
-                </div>
+                  </div>
                 <div className="flex items-center text-gray-600">
                   <span className="mr-2">Completed</span>
                   <Star className="h-4 w-4 text-yellow-500 mr-1" />
                   <span className="text-sm text-primary-600 cursor-pointer hover:underline">
                     Click to view
-                  </span>
+                    </span>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
         </div>
 
         {/* Encouragement Message */}
@@ -393,7 +393,7 @@ export default function AthleteProgressPage() {
             <div className="flex items-center justify-center mb-4">
               <Sparkles className="h-6 w-6 text-yellow-500 mr-2" />
               <h3 className="text-xl font-semibold text-gray-900">
-                You're doing amazing, {userName}!
+                You&apos;re doing amazing, {userName}!
               </h3>
             </div>
             <p className="text-gray-600 mb-4">
@@ -403,8 +403,8 @@ export default function AthleteProgressPage() {
               <div className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-orange-100 text-orange-800">
                 <Flame className="h-4 w-4 mr-1" />
                 Streak Champion!
-              </div>
-            )}
+            </div>
+          )}
           </div>
         </div>
 
