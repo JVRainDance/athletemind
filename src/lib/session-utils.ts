@@ -19,18 +19,13 @@ export function getSessionButtonState(session: Session, checkin: Checkin | null)
   const sessionEnd = new Date(`${session.scheduled_date}T${session.end_time}`)
   const oneHourBefore = new Date(sessionStart.getTime() - 60 * 60 * 1000)
   
-  // More lenient timing - allow check-in if we're close to session time
+  // Simplified timing logic - allow check-in if we're within 2 hours of session
   // This handles timezone issues and makes the button more user-friendly
   const timeUntilSession = sessionStart.getTime() - now.getTime()
   const timeUntilSessionMinutes = timeUntilSession / (1000 * 60)
   
-  // Allow check-in if:
-  // 1. We're within 1 hour before session OR
-  // 2. Session has started but not ended OR  
-  // 3. We're within 2 hours of session (more lenient for timezone issues)
-  const canStartCheckin = (now >= oneHourBefore && now <= sessionEnd) || 
-                         (now >= sessionStart && now <= sessionEnd) ||
-                         (timeUntilSessionMinutes <= 120 && timeUntilSessionMinutes >= -60)
+  // Allow check-in if we're within 2 hours of session start (more lenient for timezone issues)
+  const canStartCheckin = timeUntilSessionMinutes <= 120 && timeUntilSessionMinutes >= -60
   
   // Check if session time has passed
   const sessionTimePassed = now > sessionEnd
