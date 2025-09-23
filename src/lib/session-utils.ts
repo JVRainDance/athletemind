@@ -54,21 +54,16 @@ export function getSessionButtonState(session: Session, checkin: Checkin | null)
         disabled: false
       }
     } else if (now >= sessionStart && now <= sessionEnd) {
-      // Session time has started
-      if (session.status === 'in_progress') {
-        return {
-          text: 'Continue Training',
-          href: `/dashboard/athlete/sessions/${session.id}/training`,
-          description: 'Athlete has started training and it is within the session time',
-          disabled: false
-        }
-      } else {
-        return {
-          text: 'Start Training',
-          href: `/dashboard/athlete/sessions/${session.id}/training`,
-          description: 'Pre-training check-in completed. Ready to start training.',
-          disabled: false
-        }
+      // Session time has started - show training button
+      // Use a more forgiving approach: if there's a checkin and we're in session time,
+      // show the training button regardless of exact status
+      return {
+        text: session.status === 'in_progress' ? 'Continue Training' : 'Start Training',
+        href: `/dashboard/athlete/sessions/${session.id}/training`,
+        description: session.status === 'in_progress' 
+          ? 'Athlete has started training and it is within the session time'
+          : 'Pre-training check-in completed. Ready to start training.',
+        disabled: false
       }
     } else {
       // Session time has ended
