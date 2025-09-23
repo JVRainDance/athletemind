@@ -11,6 +11,7 @@ export interface ButtonState {
 }
 
 export function getSessionButtonState(session: Session, checkin: Checkin | null): ButtonState {
+  console.log('getSessionButtonState called with:', { session, checkin })
   const now = new Date()
   
   // Create session times in the user's local timezone
