@@ -35,23 +35,41 @@ export async function GET(request: NextRequest) {
         .eq('id', data.user.id)
         .single()
 
-      let redirectPath = '/dashboard'
-
       if (!existingProfile) {
         // Profile doesn't exist, this is a new user after email confirmation
-        // We need to get the user data from the registration process
-        // For now, redirect to a profile completion page
-        return NextResponse.redirect(`${origin}/auth/complete-profile`)
-      } else {
-        // Profile exists, redirect based on role
-        if (existingProfile.role === 'athlete') {
-          redirectPath = '/dashboard/athlete'
-        } else if (existingProfile.role === 'coach') {
-          redirectPath = '/dashboard/coach'
-        }
-      }
+        // Create profile automatically with default values
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .insert({
+            id: data.user.id,
+            email: data.user.email,
+            first_name: 'User', // Default values
+            last_name: null,
+            role: 'athlete', // Default to athlete
+          })
 
-      return NextResponse.redirect(`${origin}${redirectPath}`)
+        if (profileError) {
+          console.error('Error creating profile:', profileError)
+          // Redirect to login with error message
+          return NextResponse.redirect(`${origin}/auth/login?error=profile_creation_failed`)
+        }
+
+        // Generate sessions for new athletes
+        try {
+          const { generateSessionsForAthlete } = await import('@/lib/session-generation')
+          await generateSessionsForAthlete(data.user.id)
+          console.log('Sessions generated for new athlete')
+        } catch (error) {
+          console.error('Error generating sessions for new athlete:', error)
+          // Don't block registration if session generation fails
+        }
+
+        // Redirect to login page with success message
+        return NextResponse.redirect(`${origin}/auth/login?message=profile_created`)
+      } else {
+        // Profile exists, redirect to login page
+        return NextResponse.redirect(`${origin}/auth/login?message=already_confirmed`)
+      }
     }
   }
 
