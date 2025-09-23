@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
             request.cookies.set(name, value)
           },
           remove(name: string, options: any) {
-            request.cookies.set(name, '', { ...options, maxAge: 0 })
+            request.cookies.set(name, '')
           },
         },
       }
