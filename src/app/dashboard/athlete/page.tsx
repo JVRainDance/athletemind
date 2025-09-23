@@ -35,7 +35,7 @@ export default async function AthleteDashboard() {
     .from('training_sessions')
     .select('*')
     .eq('athlete_id', session.user.id)
-    .not('status', 'in', ['completed', 'absent'])
+    .in('status', ['scheduled', 'in_progress', 'cancelled'])
     .order('scheduled_date', { ascending: true })
     .limit(1)
     .single()
