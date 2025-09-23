@@ -29,13 +29,13 @@ export default async function AthleteDashboard() {
     redirect('/auth/login')
   }
 
-  // Get next training session (exclude completed sessions)
+  // Get next training session (exclude completed and absent sessions)
   const { data: nextSession } = await supabase
     .from('training_sessions')
     .select('*')
     .eq('athlete_id', session.user.id)
     .gte('scheduled_date', new Date().toISOString())
-    .neq('status', 'completed')
+    .not('status', 'in', ['completed', 'absent'])
     .order('scheduled_date', { ascending: true })
     .limit(1)
     .single()

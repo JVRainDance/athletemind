@@ -99,6 +99,15 @@ export function getSessionButtonState(session: Session, checkin: Checkin | null)
     }
   }
   
+  if (session.status === 'absent') {
+    return {
+      text: 'Session Marked Absent',
+      href: '#',
+      description: 'This session has been marked as absent',
+      disabled: true
+    }
+  }
+  
   return {
     text: 'Start Pre-Training Check-in',
     href: `/dashboard/athlete/sessions/${session.id}/checkin`,
