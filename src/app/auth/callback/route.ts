@@ -28,18 +28,27 @@ export async function GET(request: NextRequest) {
 
     const { data, error } = await supabase.auth.exchangeCodeForSession(code)
     if (!error && data.user) {
-      // Get user profile to determine redirect
-      const { data: profile } = await supabase
+      // Check if profile exists
+      const { data: existingProfile } = await supabase
         .from('profiles')
         .select('role')
         .eq('id', data.user.id)
         .single()
 
       let redirectPath = '/dashboard'
-      if (profile?.role === 'athlete') {
-        redirectPath = '/dashboard/athlete'
-      } else if (profile?.role === 'coach') {
-        redirectPath = '/dashboard/coach'
+
+      if (!existingProfile) {
+        // Profile doesn't exist, this is a new user after email confirmation
+        // We need to get the user data from the registration process
+        // For now, redirect to a profile completion page
+        return NextResponse.redirect(`${origin}/auth/complete-profile`)
+      } else {
+        // Profile exists, redirect based on role
+        if (existingProfile.role === 'athlete') {
+          redirectPath = '/dashboard/athlete'
+        } else if (existingProfile.role === 'coach') {
+          redirectPath = '/dashboard/coach'
+        }
       }
 
       return NextResponse.redirect(`${origin}${redirectPath}`)

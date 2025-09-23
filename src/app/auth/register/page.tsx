@@ -36,21 +36,12 @@ export default function RegisterPage() {
       }
 
       if (authData.user) {
-        // Create profile
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .insert({
-            id: authData.user.id,
-            email,
-            first_name: firstName,
-            last_name: lastName || null,
-            role,
-          })
-
-        if (profileError) {
-          setError('Failed to create profile: ' + profileError.message)
-          return
-        }
+        // Store user data in localStorage for profile creation after email confirmation
+        localStorage.setItem('pendingProfile', JSON.stringify({
+          firstName,
+          lastName,
+          role
+        }))
 
         // Redirect to email confirmation page
         router.push('/auth/confirm-email')

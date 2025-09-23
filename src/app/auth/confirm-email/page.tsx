@@ -20,9 +20,9 @@ export default function ConfirmEmailPage() {
       if (user) {
         setEmail(user.email || '')
         
-        // If user is already confirmed, redirect to dashboard
+        // If user is already confirmed, redirect to complete profile page
         if (user.email_confirmed_at) {
-          router.push('/dashboard')
+          router.push('/auth/complete-profile')
           return
         }
       }
@@ -60,20 +60,6 @@ export default function ConfirmEmailPage() {
     }
   }
 
-  const handleCheckConfirmation = async () => {
-    try {
-      const supabase = createClient()
-      const { data: { user } } = await supabase.auth.getUser()
-      
-      if (user && user.email_confirmed_at) {
-        router.push('/dashboard')
-      } else {
-        alert('Email not confirmed yet. Please check your email and click the confirmation link.')
-      }
-    } catch (error) {
-      console.error('Error checking confirmation:', error)
-    }
-  }
 
   if (isChecking) {
     return (
@@ -117,12 +103,12 @@ export default function ConfirmEmailPage() {
             </div>
 
             <div className="space-y-4">
-              <button
-                onClick={handleCheckConfirmation}
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
-              >
-                I&apos;ve Confirmed My Email
-              </button>
+              <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
+                <p className="text-sm text-blue-800">
+                  <strong>Next step:</strong> Click the confirmation link in your email, 
+                  and you&apos;ll be automatically redirected to your dashboard.
+                </p>
+              </div>
 
               <div className="text-center">
                 <p className="text-sm text-gray-600">
