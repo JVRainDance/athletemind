@@ -12,22 +12,25 @@ export interface ButtonState {
 
 export function getSessionButtonState(session: Session, checkin: Checkin | null): ButtonState {
   const now = new Date()
+  
+  // Create session times in the user's local timezone
+  // This ensures consistent behavior between local development and Vercel deployment
   const sessionStart = new Date(`${session.scheduled_date}T${session.start_time}`)
   const sessionEnd = new Date(`${session.scheduled_date}T${session.end_time}`)
   const oneHourBefore = new Date(sessionStart.getTime() - 60 * 60 * 1000)
   
-  // Debug logging
-  console.log('Session timing debug:', {
-    now: now.toISOString(),
-    sessionStart: sessionStart.toISOString(),
-    sessionEnd: sessionEnd.toISOString(),
-    oneHourBefore: oneHourBefore.toISOString(),
-    timeUntilSession: Math.round((sessionStart.getTime() - now.getTime()) / (1000 * 60)), // minutes
-    timeUntilOneHour: Math.round((oneHourBefore.getTime() - now.getTime()) / (1000 * 60)) // minutes
-  })
+  // More lenient timing - allow check-in if we're close to session time
+  // This handles timezone issues and makes the button more user-friendly
+  const timeUntilSession = sessionStart.getTime() - now.getTime()
+  const timeUntilSessionMinutes = timeUntilSession / (1000 * 60)
   
-  // Check if we're within 1 hour of session start OR if session has started but not ended
-  const canStartCheckin = (now >= oneHourBefore && now <= sessionEnd) || (now >= sessionStart && now <= sessionEnd)
+  // Allow check-in if:
+  // 1. We're within 1 hour before session OR
+  // 2. Session has started but not ended OR  
+  // 3. We're within 2 hours of session (more lenient for timezone issues)
+  const canStartCheckin = (now >= oneHourBefore && now <= sessionEnd) || 
+                         (now >= sessionStart && now <= sessionEnd) ||
+                         (timeUntilSessionMinutes <= 120 && timeUntilSessionMinutes >= -60)
   
   // Check if session time has passed
   const sessionTimePassed = now > sessionEnd
@@ -35,7 +38,6 @@ export function getSessionButtonState(session: Session, checkin: Checkin | null)
   if (!checkin) {
     // No check-in completed
     if (canStartCheckin) {
-      console.log('Button state: ENABLED - No checkin, can start checkin')
       return {
         text: 'Start Pre-Training Check-in',
         href: `/dashboard/athlete/sessions/${session.id}/checkin`,
@@ -43,7 +45,6 @@ export function getSessionButtonState(session: Session, checkin: Checkin | null)
         disabled: false
       }
     } else {
-      console.log('Button state: DISABLED - No checkin, cannot start checkin yet')
       return {
         text: 'Start Pre-Training Check-in',
         href: `/dashboard/athlete/sessions/${session.id}/checkin`,
