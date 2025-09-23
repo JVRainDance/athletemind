@@ -49,7 +49,7 @@ export default function AbsenceModal({ isOpen, onClose, athleteId }: AbsenceModa
         .from('training_sessions')
         .select('*')
         .eq('athlete_id', athleteId)
-        .in('status', ['scheduled', 'confirmed'])
+        .in('status', ['scheduled'])
         .gte('scheduled_date', new Date().toISOString().split('T')[0])
         .order('scheduled_date', { ascending: true })
 
