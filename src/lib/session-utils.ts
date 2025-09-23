@@ -24,6 +24,15 @@ export function getSessionButtonState(session: Session, checkin: Checkin | null)
   const timeUntilSession = sessionStart.getTime() - now.getTime()
   const timeUntilSessionMinutes = timeUntilSession / (1000 * 60)
   
+  // Debug logging
+  console.log('Session timing debug:', {
+    now: now.toISOString(),
+    sessionStart: sessionStart.toISOString(),
+    sessionEnd: sessionEnd.toISOString(),
+    timeUntilSessionMinutes: Math.round(timeUntilSessionMinutes),
+    canStartCheckin: timeUntilSessionMinutes <= 120 && timeUntilSessionMinutes >= -60
+  })
+  
   // Allow check-in if we're within 2 hours of session start (more lenient for timezone issues)
   const canStartCheckin = timeUntilSessionMinutes <= 120 && timeUntilSessionMinutes >= -60
   
@@ -33,6 +42,7 @@ export function getSessionButtonState(session: Session, checkin: Checkin | null)
   if (!checkin) {
     // No check-in completed
     if (canStartCheckin) {
+      console.log('Button state: ENABLED - No checkin, can start checkin')
       return {
         text: 'Start Pre-Training Check-in',
         href: `/dashboard/athlete/sessions/${session.id}/checkin`,
@@ -40,6 +50,7 @@ export function getSessionButtonState(session: Session, checkin: Checkin | null)
         disabled: false
       }
     } else {
+      console.log('Button state: DISABLED - No checkin, cannot start checkin yet')
       return {
         text: 'Start Pre-Training Check-in',
         href: `/dashboard/athlete/sessions/${session.id}/checkin`,
