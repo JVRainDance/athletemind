@@ -61,14 +61,44 @@ export async function middleware(request: NextRequest) {
         !request.nextUrl.pathname.startsWith('/auth/loading') && 
         !request.nextUrl.pathname.startsWith('/auth/register') &&
         !request.nextUrl.pathname.startsWith('/auth/confirm-email')) {
-      // Get user profile to determine role-based redirect
-      const { data: profile } = await supabase
+      
+      // Check if profile exists, create if it doesn't
+      const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('role')
         .eq('id', session.user.id)
         .single()
 
-      const redirectPath = getRoleRedirectPath(profile?.role || '')
+      if (!profile && profileError?.code === 'PGRST116') {
+        // Profile doesn't exist, create it
+        console.log('Creating profile for user:', session.user.id, 'with metadata:', session.user.user_metadata)
+        try {
+          const { error: insertError } = await supabase
+            .from('profiles')
+            .insert({
+              id: session.user.id,
+              email: session.user.email,
+              first_name: session.user.user_metadata?.first_name || 'User',
+              last_name: session.user.user_metadata?.last_name || null,
+              role: session.user.user_metadata?.role || 'athlete'
+            })
+
+          if (!insertError) {
+            console.log('Profile created successfully for user:', session.user.id)
+            // Profile created successfully, redirect based on role
+            const role = session.user.user_metadata?.role || 'athlete'
+            const redirectPath = getRoleRedirectPath(role)
+            return NextResponse.redirect(new URL(redirectPath, request.url))
+          } else {
+            console.error('Failed to create profile:', insertError)
+          }
+        } catch (err) {
+          console.error('Failed to create profile in middleware:', err)
+        }
+      }
+
+      // If profile exists or creation failed, redirect based on role
+      const redirectPath = getRoleRedirectPath(profile?.role || 'athlete')
       return NextResponse.redirect(new URL(redirectPath, request.url))
     }
   } catch (error) {
