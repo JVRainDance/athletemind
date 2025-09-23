@@ -30,16 +30,11 @@ export default async function AthleteDashboard() {
   }
 
   // Get next training session (exclude completed and absent sessions)
-  // Use a more lenient date filter to handle timezone issues on Vercel
-  const now = new Date()
-  const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000)
-  const yesterdayStr = yesterday.toISOString().split('T')[0]
-  
+  // Use a very lenient date filter to handle all timezone issues
   const { data: nextSession } = await supabase
     .from('training_sessions')
     .select('*')
     .eq('athlete_id', session.user.id)
-    .gte('scheduled_date', yesterdayStr)
     .not('status', 'in', ['completed', 'absent'])
     .order('scheduled_date', { ascending: true })
     .limit(1)
