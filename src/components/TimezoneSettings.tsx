@@ -83,7 +83,8 @@ export default function TimezoneSettings({
       setMessage({ type: 'success', text: 'Timezone updated successfully!' })
     } catch (error) {
       console.error('Error updating timezone:', error)
-      setMessage({ type: 'error', text: `Failed to update timezone: ${error.message || 'Unknown error'}` })
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      setMessage({ type: 'error', text: `Failed to update timezone: ${errorMessage}` })
     } finally {
       setLoading(false)
     }
@@ -123,7 +124,8 @@ export default function TimezoneSettings({
       setMessage({ type: 'success', text: 'Timezone auto-detected and updated!' })
     } catch (error) {
       console.error('Error auto-detecting timezone:', error)
-      setMessage({ type: 'error', text: `Failed to auto-detect timezone: ${error.message || 'Unknown error'}` })
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      setMessage({ type: 'error', text: `Failed to auto-detect timezone: ${errorMessage}` })
     } finally {
       setLoading(false)
     }

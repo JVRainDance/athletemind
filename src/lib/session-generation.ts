@@ -96,7 +96,13 @@ function generateSessionsFromSchedule(
   startDate: Date,
   endDate: Date
 ) {
-  const sessions = []
+  const sessions: Array<{
+    scheduled_date: string
+    start_time: string
+    end_time: string
+    session_type: string
+    status: 'scheduled'
+  }> = []
   const currentDate = new Date(startDate)
 
   while (currentDate <= endDate) {

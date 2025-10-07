@@ -74,7 +74,7 @@ export default function SessionManagementHelper({ sessionId, onUpdated }: Sessio
               Session Time Has Passed
             </h3>
             <p className="text-sm text-yellow-700 mt-1">
-              This session's time has already passed. You can mark it as absent or completed.
+              This session&apos;s time has already passed. You can mark it as absent or completed.
             </p>
             <button
               onClick={() => setShowOptions(true)}

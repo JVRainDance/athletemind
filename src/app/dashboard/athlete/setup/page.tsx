@@ -127,7 +127,7 @@ export default function SetupWizard() {
               {SETUP_STEPS[currentStep].description}
             </p>
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-left">
-              <h3 className="font-semibold text-blue-900 mb-2">What you'll be able to do:</h3>
+              <h3 className="font-semibold text-blue-900 mb-2">What you&apos;ll be able to do:</h3>
               <ul className="text-blue-800 space-y-1">
                 <li>• Set and track your training goals</li>
                 <li>• Log your training sessions and reflections</li>

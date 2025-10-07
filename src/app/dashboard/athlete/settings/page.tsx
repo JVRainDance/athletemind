@@ -52,7 +52,7 @@ export default function SettingsPage() {
 
   const handleTimezoneUpdate = (timezone: string, autoDetected: boolean) => {
     // Update local state
-    setProfile(prev => ({
+    setProfile((prev: any) => ({
       ...prev,
       timezone,
       timezone_auto_detected: autoDetected
