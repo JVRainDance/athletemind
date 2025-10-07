@@ -89,8 +89,8 @@ export default function AbsenceModal({ isOpen, onClose, athleteId }: AbsenceModa
       setSelectedReason('')
       setCustomReason('')
       
-      // Refresh the page to show updated data
-      window.location.reload()
+      // Trigger a custom event to refresh dashboard data
+      window.dispatchEvent(new CustomEvent('sessionCreated'))
     } catch (err) {
       console.error('Error recording absence:', err)
       setError('Failed to record absence. Please try again.')
@@ -157,7 +157,15 @@ export default function AbsenceModal({ isOpen, onClose, athleteId }: AbsenceModa
                       <div className="flex items-center space-x-2 mt-1">
                         <Clock className="w-4 h-4 text-gray-400" />
                         <span className="text-sm text-gray-600">
-                          {session.start_time} - {session.end_time}
+                          {new Date(`2000-01-01T${session.start_time}`).toLocaleTimeString('en-US', {
+                            hour: 'numeric',
+                            minute: '2-digit',
+                            hour12: true,
+                          })} - {new Date(`2000-01-01T${session.end_time}`).toLocaleTimeString('en-US', {
+                            hour: 'numeric',
+                            minute: '2-digit',
+                            hour12: true,
+                          })}
                         </span>
                       </div>
                     </div>

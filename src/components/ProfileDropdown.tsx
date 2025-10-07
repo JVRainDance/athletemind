@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { User, Settings, Calendar, LogOut, ChevronDown } from 'lucide-react'
+import { User, Settings, Calendar, LogOut, ChevronDown, Clock } from 'lucide-react'
 import { createClient } from '@/lib/supabase-client'
 
 interface ProfileDropdownProps {
@@ -68,6 +68,15 @@ export default function ProfileDropdown({ firstName, lastName }: ProfileDropdown
           >
             <User className="w-4 h-4 mr-3" />
             Profile
+          </Link>
+          
+          <Link
+            href="/dashboard/athlete/sessions"
+            className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+            onClick={() => setIsOpen(false)}
+          >
+            <Clock className="w-4 h-4 mr-3" />
+            Training Sessions
           </Link>
           
           <Link

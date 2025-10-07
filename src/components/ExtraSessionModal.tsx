@@ -77,7 +77,8 @@ export default function ExtraSessionModal({ isOpen, onClose, athleteId }: ExtraS
         setEndTime('')
         setSessionType('')
         onClose()
-        router.refresh() // Refresh the page to show the new session
+        // Trigger a custom event to refresh dashboard data
+        window.dispatchEvent(new CustomEvent('sessionCreated'))
       }
     } catch (err) {
       console.error('Unexpected error:', err)
@@ -225,6 +226,8 @@ export default function ExtraSessionModal({ isOpen, onClose, athleteId }: ExtraS
     </div>
   )
 }
+
+
 
 
 

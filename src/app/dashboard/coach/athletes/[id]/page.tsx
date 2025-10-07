@@ -322,7 +322,15 @@ export default function AthleteDetailPage() {
                         {formatDate(session.scheduled_date)}
                       </p>
                       <p className="text-sm text-gray-500">
-                        {session.start_time} - {session.end_time}
+                        {new Date(`2000-01-01T${session.start_time}`).toLocaleTimeString('en-US', {
+                          hour: 'numeric',
+                          minute: '2-digit',
+                          hour12: true,
+                        })} - {new Date(`2000-01-01T${session.end_time}`).toLocaleTimeString('en-US', {
+                          hour: 'numeric',
+                          minute: '2-digit',
+                          hour12: true,
+                        })}
                       </p>
                     </div>
                   </div>

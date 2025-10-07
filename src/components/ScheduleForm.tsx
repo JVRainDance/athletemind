@@ -64,8 +64,8 @@ export default function ScheduleForm({ athleteId }: ScheduleFormProps) {
       setEndTime('17:00')
       setSessionType('regular')
       
-      // Refresh the page to show the new schedule
-      window.location.reload()
+      // Trigger a custom event to refresh dashboard data
+      window.dispatchEvent(new CustomEvent('sessionCreated'))
     } catch (err) {
       setError('An unexpected error occurred')
     } finally {
@@ -189,6 +189,8 @@ export default function ScheduleForm({ athleteId }: ScheduleFormProps) {
     </div>
   )
 }
+
+
 
 
 

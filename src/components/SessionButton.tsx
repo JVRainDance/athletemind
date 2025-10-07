@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { CheckCircle, Rocket } from 'lucide-react'
+import SessionManagementHelper from './SessionManagementHelper'
 import { getSessionButtonState } from '@/lib/session-utils'
 
 interface SessionButtonProps {
@@ -17,6 +18,7 @@ export default function SessionButton({ session, checkin }: SessionButtonProps) 
     description: '',
     disabled: true
   })
+  const [showHelper, setShowHelper] = useState(false)
 
   useEffect(() => {
     if (!session) return
@@ -59,6 +61,14 @@ export default function SessionButton({ session, checkin }: SessionButtonProps) 
     })
     
     let newButtonState
+    
+    // Check if session is past due and not completed/absent
+    if (sessionTimePassed && !['completed', 'absent', 'cancelled'].includes(session.status)) {
+      setShowHelper(true)
+      return
+    }
+    
+    setShowHelper(false)
     
     if (!checkin) {
       // No check-in completed
@@ -131,7 +141,12 @@ export default function SessionButton({ session, checkin }: SessionButtonProps) 
 
   return (
     <div className="flex justify-center">
-      {buttonState.disabled ? (
+      {showHelper ? (
+        <SessionManagementHelper 
+          sessionId={session.id}
+          onUpdated={() => window.location.reload()}
+        />
+      ) : buttonState.disabled ? (
         <button
           disabled
           className="inline-flex items-center px-3 py-2 sm:px-4 sm:py-2 border border-transparent text-sm font-medium rounded-md shadow-sm bg-gray-400 text-gray-200 cursor-not-allowed"

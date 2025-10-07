@@ -28,3 +28,6 @@ ALTER TABLE profiles DROP COLUMN full_name;
 
 
 
+
+
+

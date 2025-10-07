@@ -42,24 +42,49 @@ export default function PreTrainingCheckinPage({ params }: PageProps) {
   // Time validation
   const [canStartCheckin, setCanStartCheckin] = useState(false)
   const [timeUntilSession, setTimeUntilSession] = useState<string>('')
+  const [userTimezone, setUserTimezone] = useState('UTC')
+
+  useEffect(() => {
+    // Fetch user's timezone
+    const fetchUserTimezone = async () => {
+      const { data: { session: authSession } } = await supabase.auth.getSession()
+      if (authSession) {
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('timezone')
+          .eq('id', authSession.user.id)
+          .maybeSingle()
+        
+        if (profileData?.timezone) {
+          setUserTimezone(profileData.timezone)
+        }
+      }
+    }
+    fetchUserTimezone()
+  }, [])
 
   useEffect(() => {
     // Check if we're within 1 hour of session start
     if (session) {
+      // Parse session times without timezone (they're stored as local time in UTC)
       const sessionDateTime = new Date(`${session.scheduled_date}T${session.start_time}`)
+      const sessionEnd = new Date(`${session.scheduled_date}T${session.end_time}`)
       const now = new Date()
+      
       const timeDiff = sessionDateTime.getTime() - now.getTime()
       const hoursUntilSession = timeDiff / (1000 * 60 * 60)
       
       // Allow check-in if within 1 hour before session OR if session has started but not ended
-      const sessionEnd = new Date(`${session.scheduled_date}T${session.end_time}`)
       const sessionEnded = now > sessionEnd
       setCanStartCheckin((hoursUntilSession <= 1 && hoursUntilSession >= -1) && !sessionEnded)
       
-      if (hoursUntilSession > 0) {
+      if (hoursUntilSession > 1) {
         const hours = Math.floor(hoursUntilSession)
         const minutes = Math.floor((hoursUntilSession - hours) * 60)
-        setTimeUntilSession(`${hours}h ${minutes}m until session`)
+        setTimeUntilSession(`Check-in will be available in ${hours}h ${minutes}m (1 hour before session start)`)
+      } else if (hoursUntilSession > 0) {
+        const minutes = Math.floor(hoursUntilSession * 60)
+        setTimeUntilSession(`Check-in available now! Session starts in ${minutes} minutes`)
       } else if (hoursUntilSession >= -1) {
         setTimeUntilSession('Session in progress - you can still check in!')
       } else {
@@ -318,7 +343,7 @@ export default function PreTrainingCheckinPage({ params }: PageProps) {
                 <div className="flex items-center justify-center">
                   <Clock className="h-5 w-5 text-yellow-600 mr-2" />
                   <p className="text-yellow-800">
-                    Check-in available {timeUntilSession} before session
+                    {timeUntilSession}
                   </p>
                 </div>
               </div>

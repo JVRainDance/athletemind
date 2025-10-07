@@ -169,7 +169,15 @@ export default function GoalsPage() {
                     <div className="flex items-center space-x-4 text-sm text-gray-500">
                       <div className="flex items-center space-x-1">
                         <Clock className="h-4 w-4" />
-                        <span>{session.start_time} - {session.end_time}</span>
+                        <span>{new Date(`2000-01-01T${session.start_time}`).toLocaleTimeString('en-US', {
+                          hour: 'numeric',
+                          minute: '2-digit',
+                          hour12: true,
+                        })} - {new Date(`2000-01-01T${session.end_time}`).toLocaleTimeString('en-US', {
+                          hour: 'numeric',
+                          minute: '2-digit',
+                          hour12: true,
+                        })}</span>
                       </div>
                       <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                         {session.session_type}

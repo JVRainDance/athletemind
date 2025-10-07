@@ -1,62 +1,203 @@
-import { createClient } from '@/lib/supabase-server'
-import { redirect } from 'next/navigation'
+'use client'
+
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { createClient } from '@/lib/supabase-client'
 import { Calendar, Target, TrendingUp, Clock, CheckCircle, Plus, X, Star, Rocket, BarChart3 } from 'lucide-react'
 import { getFullName } from '@/lib/utils'
+import { formatTimeInTimezone } from '@/lib/timezone-utils'
 import AbsenceButton from '@/components/AbsenceButton'
 import ExtraSessionButton from '@/components/ExtraSessionButton'
 import SessionCountdown from '@/components/SessionCountdown'
 import SessionButton from '@/components/SessionButton'
 
-export default async function AthleteDashboard() {
+interface TrainingSession {
+  id: string
+  scheduled_date: string
+  start_time: string
+  end_time: string
+  session_type: 'regular' | 'competition' | 'extra'
+  status: 'scheduled' | 'in_progress' | 'completed' | 'cancelled' | 'absent'
+}
+
+interface Checkin {
+  id: string
+  session_id: string
+  energy_level: number
+  mood: string
+  goals: string
+  notes: string
+}
+
+export default function AthleteDashboard() {
+  const [session, setSession] = useState<any>(null)
+  const [profile, setProfile] = useState<any>(null)
+  const [nextSession, setNextSession] = useState<TrainingSession | null>(null)
+  const [nextSessionCheckin, setNextSessionCheckin] = useState<Checkin | null>(null)
+  const [nextReward, setNextReward] = useState<any>(null)
+  const [totalStars, setTotalStars] = useState(0)
+  const [userTimezone, setUserTimezone] = useState('UTC')
+  const [loading, setLoading] = useState(true)
+  const router = useRouter()
   const supabase = createClient()
-  
-  const {
-    data: { session },
-  } = await supabase.auth.getSession()
 
-  if (!session) {
-    redirect('/auth/login')
-  }
+  useEffect(() => {
+    fetchDashboardData()
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('role, first_name, last_name')
-    .eq('id', session.user.id)
-    .single()
+    // Listen for session creation events to refresh data
+    const handleSessionCreated = () => {
+      fetchDashboardData()
+    }
 
-  if (!profile || profile.role !== 'athlete') {
-    redirect('/auth/login')
-  }
+    window.addEventListener('sessionCreated', handleSessionCreated)
 
-  // Get next training session (exclude completed and absent sessions)
-  // Use a very lenient date filter to handle all timezone issues
-  const { data: nextSession } = await supabase
-    .from('training_sessions')
-    .select('*')
-    .eq('athlete_id', session.user.id)
-    .in('status', ['scheduled', 'in_progress', 'cancelled'])
-    .order('scheduled_date', { ascending: true })
-    .limit(1)
-    .single()
+    return () => {
+      window.removeEventListener('sessionCreated', handleSessionCreated)
+    }
+  }, [])
 
+  const fetchDashboardData = async () => {
+    try {
+      console.log('Starting dashboard data fetch...')
+      console.log('Supabase client:', supabase)
+      
+      const { data: { session: authSession } } = await supabase.auth.getSession()
+      if (!authSession) {
+        console.log('No auth session found, redirecting to login')
+        router.push('/auth/login')
+        return
+      }
+
+      console.log('Auth session found:', authSession.user.id)
+      setSession(authSession)
+
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('role, first_name, last_name, setup_completed, timezone, timezone_auto_detected')
+        .eq('id', authSession.user.id)
+        .maybeSingle()
+
+      if (profileError) {
+        console.error('Error fetching profile:', profileError)
+        router.push('/auth/login')
+        return
+      }
+
+      if (!profileData) {
+        console.error('No profile found for user')
+        router.push('/auth/login')
+        return
+      }
+
+      if (!profileData || profileData.role !== 'athlete') {
+        router.push('/auth/login')
+        return
+      }
+
+      // Redirect to setup if not completed
+      if (!profileData.setup_completed) {
+        router.push('/dashboard/athlete/setup')
+        return
+      }
+
+      setProfile(profileData)
+      setUserTimezone(profileData.timezone || 'UTC')
+
+      // Get next training session (exclude completed, absent, and cancelled sessions)
+      // Use a simpler approach first to avoid timezone issues
+      const now = new Date()
+      const today = now.toISOString().split('T')[0]
+      
+      console.log('Dashboard query - Today (UTC):', today)
+      
+      // First, let's get all sessions to see what exists
+      const { data: allSessions, error: allSessionsError } = await supabase
+        .from('training_sessions')
+        .select('*')
+        .eq('athlete_id', authSession.user.id)
+        .order('scheduled_date', { ascending: true })
+      
+      if (allSessionsError) {
+        console.error('Error fetching all sessions:', allSessionsError)
+        setNextSession(null)
+      } else {
+        console.log('All sessions for user:', allSessions)
+        
+        // Now get the next session with date filtering
+        const { data: nextSessionData, error: nextSessionError } = await supabase
+          .from('training_sessions')
+          .select('*')
+          .eq('athlete_id', authSession.user.id)
+          .in('status', ['scheduled', 'in_progress'])
+          .gte('scheduled_date', today)
+          .order('scheduled_date', { ascending: true })
+          .limit(1)
+          .maybeSingle()
+
+        if (nextSessionError) {
+          console.error('Error fetching next session:', nextSessionError)
+          setNextSession(null)
+        } else {
+          console.log('Next session found:', nextSessionData)
+          setNextSession(nextSessionData)
+          
           // Get check-in for next session if it exists
-          let nextSessionCheckin = null
-          if (nextSession) {
-            const { data: checkinData, error: checkinError } = await supabase
+          if (nextSessionData) {
+            const { data: checkinData } = await supabase
               .from('pre_training_checkins')
               .select('*')
-              .eq('session_id', nextSession.id)
+              .eq('session_id', nextSessionData.id)
               .maybeSingle()
             
-            nextSessionCheckin = checkinData
+            setNextSessionCheckin(checkinData)
           }
+        }
+      }
+
+      // Get user's rewards and stars
+      const { data: rewards } = await supabase
+        .from('rewards')
+        .select('*')
+        .eq('user_id', authSession.user.id)
+        .eq('is_active', true)
+        .eq('reward_type', 'individual')
+        .order('stars_required', { ascending: true })
+
+      // Get total stars earned
+      const { data: userStars } = await supabase
+        .from('user_stars')
+        .select('stars_earned')
+        .eq('user_id', authSession.user.id)
+
+      const totalStarsEarned = userStars?.reduce((sum, star) => sum + star.stars_earned, 0) || 0
+      setTotalStars(totalStarsEarned)
+
+      // Find next reward (first one not yet achieved)
+      if (rewards && rewards.length > 0) {
+        const nextRewardData = rewards.find(reward => reward.stars_required > totalStarsEarned) || rewards[0]
+        setNextReward(nextRewardData)
+      }
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-lg text-gray-600">Loading...</div>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6">
       <div>
         <p className="mt-2 text-gray-600">
-          Ready to show up, reflect, and build momentum?
+          Ready to show up, reflect, and build momentum.
         </p>
       </div>
 
@@ -77,7 +218,7 @@ export default async function AthleteDashboard() {
                   })}
                 </p>
                 <p className="text-base sm:text-lg text-primary-600 font-medium">
-                  {nextSession.start_time} - {nextSession.end_time}
+                  {formatTimeInTimezone(new Date(`2000-01-01T${nextSession.start_time}`), userTimezone)} - {formatTimeInTimezone(new Date(`2000-01-01T${nextSession.end_time}`), userTimezone)}
                 </p>
               </div>
               
@@ -126,32 +267,37 @@ export default async function AthleteDashboard() {
         </div>
       </div>
 
-      {/* Rewards Card */}
-      <div className="bg-white shadow-lg rounded-lg border border-gray-200">
-        <div className="px-4 py-5 sm:p-6">
-          <div className="flex items-center space-x-2 mb-4">
-            <h2 className="text-lg leading-6 font-medium text-gray-900">Your Next Reward</h2>
-            <div className="w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center">
-              <Star className="w-4 h-4 text-white" />
-            </div>
-          </div>
-          <div className="space-y-3">
-            <p className="text-lg font-medium text-gray-900">Rollerblades</p>
-            <div className="flex items-center space-x-3">
-              <div className="flex-1 bg-gray-200 rounded-full h-3">
-                <div className="bg-yellow-400 h-3 rounded-full" style={{ width: '87%' }}></div>
-              </div>
-              <div className="flex items-center space-x-1">
-                <span className="text-sm font-medium text-gray-900">13/15</span>
-                <Star className="w-4 h-4 text-yellow-500" />
+      {/* Rewards Card - Only show if user has rewards set up */}
+      {nextReward && (
+        <div className="bg-white shadow-lg rounded-lg border border-gray-200">
+          <div className="px-4 py-5 sm:p-6">
+            <div className="flex items-center space-x-2 mb-4">
+              <h2 className="text-lg leading-6 font-medium text-gray-900">Your Next Reward</h2>
+              <div className="w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center">
+                <Star className="w-4 h-4 text-white" />
               </div>
             </div>
-            <p className="text-sm text-gray-600">
-              Keep earning stars through your training sessions to reach your reward
-            </p>
+            <div className="space-y-3">
+              <p className="text-lg font-medium text-gray-900">{nextReward.reward_name}</p>
+              <div className="flex items-center space-x-3">
+                <div className="flex-1 bg-gray-200 rounded-full h-3">
+                  <div 
+                    className="bg-yellow-400 h-3 rounded-full" 
+                    style={{ width: `${Math.min((totalStars / nextReward.stars_required) * 100, 100)}%` }}
+                  ></div>
+                </div>
+                <div className="flex items-center space-x-1">
+                  <span className="text-sm font-medium text-gray-900">{totalStars}/{nextReward.stars_required}</span>
+                  <Star className="w-4 h-4 text-yellow-500" />
+                </div>
+              </div>
+              <p className="text-sm text-gray-600">
+                Keep earning stars through your training sessions to reach your reward
+              </p>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Quick Actions Card */}
       <div className="bg-white shadow-lg rounded-lg border border-gray-200">

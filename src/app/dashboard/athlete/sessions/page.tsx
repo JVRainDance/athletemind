@@ -5,7 +5,9 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase-client'
 import { Calendar, Clock, Play, CheckCircle, XCircle, AlertCircle } from 'lucide-react'
-import { formatDate, formatTime } from '@/lib/utils'
+import { formatDate } from '@/lib/utils'
+import { formatTimeInTimezone } from '@/lib/timezone-utils'
+import BackButton from '@/components/BackButton'
 
 interface TrainingSession {
   id: string
@@ -29,6 +31,7 @@ const ABSENCE_REASONS = [
 
 export default function SessionsPage() {
   const [sessions, setSessions] = useState<TrainingSession[]>([])
+  const [userTimezone, setUserTimezone] = useState('UTC')
   const [loading, setLoading] = useState(true)
   const [showAbsenceForm, setShowAbsenceForm] = useState<string | null>(null)
   const [absenceReason, setAbsenceReason] = useState('')
@@ -36,6 +39,17 @@ export default function SessionsPage() {
 
   useEffect(() => {
     fetchSessions()
+
+    // Listen for session creation events to refresh data
+    const handleSessionCreated = () => {
+      fetchSessions()
+    }
+
+    window.addEventListener('sessionCreated', handleSessionCreated)
+
+    return () => {
+      window.removeEventListener('sessionCreated', handleSessionCreated)
+    }
   }, [])
 
   const fetchSessions = async () => {
@@ -45,6 +59,17 @@ export default function SessionsPage() {
       if (!session) {
         router.push('/auth/login')
         return
+      }
+
+      // Fetch user's timezone from profile
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('timezone')
+        .eq('id', session.user.id)
+        .maybeSingle()
+
+      if (profileData?.timezone) {
+        setUserTimezone(profileData.timezone)
       }
 
       const { data, error } = await supabase
@@ -187,11 +212,14 @@ export default function SessionsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">Training Sessions</h1>
-        <p className="mt-2 text-gray-600">
-          Manage your training sessions and track your progress
-        </p>
+      <div className="flex items-center space-x-4">
+        <BackButton href="/dashboard/athlete" />
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Training Sessions</h1>
+          <p className="mt-2 text-gray-600">
+            Manage your training sessions and track your progress
+          </p>
+        </div>
       </div>
 
       {/* Sessions List */}
@@ -216,7 +244,7 @@ export default function SessionsPage() {
                         </p>
                         <div className="flex items-center space-x-2 text-sm text-gray-500">
                           <Clock className="h-4 w-4" />
-                          <span>{formatTime(session.start_time)} - {formatTime(session.end_time)}</span>
+                          <span>{formatTimeInTimezone(new Date(`2000-01-01T${session.start_time}`), userTimezone)} - {formatTimeInTimezone(new Date(`2000-01-01T${session.end_time}`), userTimezone)}</span>
                         </div>
                         {session.absence_reason && (
                           <p className="text-xs text-red-600 mt-1">

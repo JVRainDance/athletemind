@@ -1,27 +1,74 @@
-import { createClient } from '@/lib/supabase-server'
-import { redirect } from 'next/navigation'
-import { Settings, User, Bell, Shield, Palette } from 'lucide-react'
+'use client'
+
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import { createClient } from '@/lib/supabase-client'
+import { Settings, User, Bell, Shield, Palette, Gift } from 'lucide-react'
 import BackButton from '@/components/BackButton'
+import RewardManager from '@/components/RewardManager'
+import TimezoneSettings from '@/components/TimezoneSettings'
 
-export default async function SettingsPage() {
+export default function SettingsPage() {
+  const [profile, setProfile] = useState<any>(null)
+  const [session, setSession] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+  const router = useRouter()
   const supabase = createClient()
-  
-  const {
-    data: { session },
-  } = await supabase.auth.getSession()
 
-  if (!session) {
-    redirect('/auth/login')
+  useEffect(() => {
+    fetchProfile()
+  }, [])
+
+  const fetchProfile = async () => {
+    try {
+      const { data: { session: authSession } } = await supabase.auth.getSession()
+
+      if (!authSession) {
+        router.push('/auth/login')
+        return
+      }
+
+      setSession(authSession)
+
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', authSession.user.id)
+        .single()
+
+      if (!profileData || profileData.role !== 'athlete') {
+        router.push('/auth/login')
+        return
+      }
+
+      setProfile(profileData)
+    } catch (error) {
+      console.error('Error fetching profile:', error)
+      router.push('/auth/login')
+    } finally {
+      setLoading(false)
+    }
   }
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', session.user.id)
-    .single()
+  const handleTimezoneUpdate = (timezone: string, autoDetected: boolean) => {
+    // Update local state
+    setProfile(prev => ({
+      ...prev,
+      timezone,
+      timezone_auto_detected: autoDetected
+    }))
+  }
 
-  if (!profile || profile.role !== 'athlete') {
-    redirect('/auth/login')
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+      </div>
+    )
+  }
+
+  if (!profile) {
+    return null
   }
 
   return (
@@ -53,7 +100,7 @@ export default async function SettingsPage() {
                 </label>
                 <input
                   type="email"
-                  value={session.user.email || ''}
+                  value={session?.user?.email || ''}
                   disabled
                   className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm disabled:bg-gray-50"
                 />
@@ -102,16 +149,6 @@ export default async function SettingsPage() {
                   <option>Zelda</option>
                   <option>Mario</option>
                   <option>Pokemon</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Time Zone
-                </label>
-                <select className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
-                  <option>UTC-8 (Pacific)</option>
-                  <option>UTC-5 (Eastern)</option>
-                  <option>UTC+0 (GMT)</option>
                 </select>
               </div>
             </div>
@@ -182,6 +219,24 @@ export default async function SettingsPage() {
                 Delete Account
               </button>
             </div>
+          </div>
+        </div>
+
+        {/* Rewards Management */}
+        <div className="bg-white shadow rounded-lg">
+          <div className="px-4 py-5 sm:p-6">
+            <RewardManager />
+          </div>
+        </div>
+
+        {/* Timezone Settings */}
+        <div className="bg-white shadow rounded-lg">
+          <div className="px-4 py-5 sm:p-6">
+            <TimezoneSettings 
+              currentTimezone={profile.timezone || 'UTC'}
+              autoDetected={profile.timezone_auto_detected || false}
+              onTimezoneUpdate={handleTimezoneUpdate}
+            />
           </div>
         </div>
       </div>

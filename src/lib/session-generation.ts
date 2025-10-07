@@ -67,6 +67,11 @@ export async function generateSessionsForAthlete(athleteId: string): Promise<{ s
       return { success: false, error: insertError.message }
     }
     
+    // Trigger a custom event to refresh dashboard data
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('sessionCreated'))
+    }
+    
     return { success: true }
   } catch (error) {
     console.error('Unexpected error:', error)
@@ -96,9 +101,10 @@ function generateSessionsFromSchedule(
 
   while (currentDate <= endDate) {
     const dayOfWeek = currentDate.getDay()
-    const matchingSchedule = schedule.find(s => s.day_of_week === dayOfWeek)
+    const matchingSchedules = schedule.filter(s => s.day_of_week === dayOfWeek)
 
-    if (matchingSchedule) {
+    // Create a session for each matching schedule on this day
+    matchingSchedules.forEach(matchingSchedule => {
       sessions.push({
         scheduled_date: currentDate.toISOString().split('T')[0],
         start_time: matchingSchedule.start_time,
@@ -106,13 +112,15 @@ function generateSessionsFromSchedule(
         session_type: matchingSchedule.session_type,
         status: 'scheduled' as const,
       })
-    }
+    })
 
     currentDate.setDate(currentDate.getDate() + 1)
   }
 
   return sessions
 }
+
+
 
 
 

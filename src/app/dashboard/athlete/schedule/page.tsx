@@ -4,6 +4,7 @@ import { Calendar, Plus, Clock, Trash2 } from 'lucide-react'
 import BackButton from '@/components/BackButton'
 import Link from 'next/link'
 import ScheduleForm from '@/components/ScheduleForm'
+import ScheduleDeleteButton from '@/components/ScheduleDeleteButton'
 
 export default async function SchedulePage() {
   const supabase = createClient()
@@ -69,7 +70,15 @@ export default async function SchedulePage() {
                         {dayNames[scheduleItem.day_of_week]}
                       </p>
                       <p className="text-sm text-gray-500">
-                        {scheduleItem.start_time} - {scheduleItem.end_time}
+                        {new Date(`2000-01-01T${scheduleItem.start_time}`).toLocaleTimeString('en-US', {
+                          hour: 'numeric',
+                          minute: '2-digit',
+                          hour12: true,
+                        })} - {new Date(`2000-01-01T${scheduleItem.end_time}`).toLocaleTimeString('en-US', {
+                          hour: 'numeric',
+                          minute: '2-digit',
+                          hour12: true,
+                        })}
                       </p>
                     </div>
                   </div>
@@ -77,9 +86,10 @@ export default async function SchedulePage() {
                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                       {scheduleItem.session_type}
                     </span>
-                    <button className="text-red-600 hover:text-red-500 text-sm font-medium">
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                    <ScheduleDeleteButton 
+                      scheduleId={scheduleItem.id}
+                      onDeleted={() => window.location.reload()}
+                    />
                   </div>
                 </div>
               ))}

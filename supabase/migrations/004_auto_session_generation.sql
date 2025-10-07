@@ -26,7 +26,7 @@ BEGIN
             
             -- Check if this day matches the schedule
             IF schedule_record.day_of_week = day_of_week THEN
-                -- Check if session already exists for this date and athlete
+                -- Check if session already exists for this date, athlete, and time
                 SELECT COUNT(*) INTO existing_session_count
                 FROM training_sessions
                 WHERE athlete_id = schedule_record.athlete_id
@@ -75,6 +75,8 @@ COMMENT ON FUNCTION generate_sessions_from_schedules() IS 'Automatically generat
 
 -- Create an index to improve performance for session generation
 CREATE INDEX IF NOT EXISTS idx_training_sessions_athlete_date ON training_sessions(athlete_id, scheduled_date, start_time);
+
+
 
 
 
