@@ -61,7 +61,7 @@ export default function AthleteDashboard() {
     try {
       console.log('Starting dashboard data fetch...')
       console.log('Supabase client:', supabase)
-      
+
       const { data: { session: authSession } } = await supabase.auth.getSession()
       if (!authSession) {
         console.log('No auth session found, redirecting to login')
@@ -72,12 +72,62 @@ export default function AthleteDashboard() {
       console.log('Auth session found:', authSession.user.id)
       setSession(authSession)
 
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .select('role, first_name, last_name, setup_completed, timezone, timezone_auto_detected')
-        .eq('id', authSession.user.id)
-        .maybeSingle()
+      const now = new Date()
+      const today = now.toISOString().split('T')[0]
 
+      // OPTIMIZED: Parallel queries instead of sequential
+      const [profileResult, nextSessionResult, rewardsResult, starsResult] = await Promise.all([
+        // Query 1: Profile data (only needed fields)
+        supabase
+          .from('profiles')
+          .select('role, first_name, last_name, setup_completed, timezone, timezone_auto_detected')
+          .eq('id', authSession.user.id)
+          .maybeSingle(),
+
+        // Query 2: Next session with checkin data (using join)
+        supabase
+          .from('training_sessions')
+          .select(`
+            id,
+            scheduled_date,
+            start_time,
+            end_time,
+            session_type,
+            status,
+            pre_training_checkins(
+              id,
+              session_id,
+              energy_level,
+              mood,
+              goals,
+              notes
+            )
+          `)
+          .eq('athlete_id', authSession.user.id)
+          .in('status', ['scheduled', 'in_progress'])
+          .gte('scheduled_date', today)
+          .order('scheduled_date', { ascending: true })
+          .limit(1)
+          .maybeSingle(),
+
+        // Query 3: Active rewards (only needed fields)
+        supabase
+          .from('rewards')
+          .select('reward_name, reward_description, stars_required')
+          .eq('user_id', authSession.user.id)
+          .eq('is_active', true)
+          .eq('reward_type', 'individual')
+          .order('stars_required', { ascending: true }),
+
+        // Query 4: Total stars (only sum the field we need)
+        supabase
+          .from('user_stars')
+          .select('stars_earned')
+          .eq('user_id', authSession.user.id)
+      ])
+
+      // Handle profile
+      const { data: profileData, error: profileError } = profileResult
       if (profileError) {
         console.error('Error fetching profile:', profileError)
         router.push('/auth/login')
@@ -90,7 +140,7 @@ export default function AthleteDashboard() {
         return
       }
 
-      if (!profileData || profileData.role !== 'athlete') {
+      if (profileData.role !== 'athlete') {
         router.push('/auth/login')
         return
       }
@@ -104,72 +154,26 @@ export default function AthleteDashboard() {
       setProfile(profileData)
       setUserTimezone(profileData.timezone || 'UTC')
 
-      // Get next training session (exclude completed, absent, and cancelled sessions)
-      // Use a simpler approach first to avoid timezone issues
-      const now = new Date()
-      const today = now.toISOString().split('T')[0]
-      
-      console.log('Dashboard query - Today (UTC):', today)
-      
-      // First, let's get all sessions to see what exists
-      const { data: allSessions, error: allSessionsError } = await supabase
-        .from('training_sessions')
-        .select('*')
-        .eq('athlete_id', authSession.user.id)
-        .order('scheduled_date', { ascending: true })
-      
-      if (allSessionsError) {
-        console.error('Error fetching all sessions:', allSessionsError)
+      // Handle next session with checkin
+      const { data: nextSessionData, error: nextSessionError } = nextSessionResult
+      if (nextSessionError) {
+        console.error('Error fetching next session:', nextSessionError)
         setNextSession(null)
       } else {
-        console.log('All sessions for user:', allSessions)
-        
-        // Now get the next session with date filtering
-        const { data: nextSessionData, error: nextSessionError } = await supabase
-          .from('training_sessions')
-          .select('*')
-          .eq('athlete_id', authSession.user.id)
-          .in('status', ['scheduled', 'in_progress'])
-          .gte('scheduled_date', today)
-          .order('scheduled_date', { ascending: true })
-          .limit(1)
-          .maybeSingle()
+        console.log('Next session found:', nextSessionData)
+        setNextSession(nextSessionData)
 
-        if (nextSessionError) {
-          console.error('Error fetching next session:', nextSessionError)
-          setNextSession(null)
-        } else {
-          console.log('Next session found:', nextSessionData)
-          setNextSession(nextSessionData)
-          
-          // Get check-in for next session if it exists
-          if (nextSessionData) {
-            const { data: checkinData } = await supabase
-              .from('pre_training_checkins')
-              .select('*')
-              .eq('session_id', nextSessionData.id)
-              .maybeSingle()
-            
-            setNextSessionCheckin(checkinData)
-          }
+        // Extract checkin from joined data
+        if (nextSessionData?.pre_training_checkins && Array.isArray(nextSessionData.pre_training_checkins) && nextSessionData.pre_training_checkins.length > 0) {
+          setNextSessionCheckin(nextSessionData.pre_training_checkins[0])
         }
       }
 
-      // Get user's rewards and stars
-      const { data: rewards } = await supabase
-        .from('rewards')
-        .select('*')
-        .eq('user_id', authSession.user.id)
-        .eq('is_active', true)
-        .eq('reward_type', 'individual')
-        .order('stars_required', { ascending: true })
+      // Handle rewards
+      const { data: rewards } = rewardsResult
+      const { data: userStars } = starsResult
 
-      // Get total stars earned
-      const { data: userStars } = await supabase
-        .from('user_stars')
-        .select('stars_earned')
-        .eq('user_id', authSession.user.id)
-
+      // Calculate total stars
       const totalStarsEarned = userStars?.reduce((sum, star) => sum + star.stars_earned, 0) || 0
       setTotalStars(totalStarsEarned)
 

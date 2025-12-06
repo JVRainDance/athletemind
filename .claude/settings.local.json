@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx supabase unlink)",
+      "Bash(npx supabase:*)",
+      "Bash(npm install:*)",
+      "Bash(docker --version:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

@@ -36,4 +36,9 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-
+# documentation (except README)
+DATABASE_OPTIMIZATION_REPORT.md
+SCHEMA_VERIFICATION.md
+SETUP_COMPLETE.md
+UI_UX_REVAMP.md
+UI_REVAMP_SUMMARY.md
