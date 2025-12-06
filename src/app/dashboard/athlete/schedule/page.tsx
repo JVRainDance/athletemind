@@ -8,19 +8,19 @@ import ScheduleDeleteButton from '@/components/ScheduleDeleteButton'
 
 export default async function SchedulePage() {
   const supabase = createClient()
-  
-  const {
-    data: { session },
-  } = await supabase.auth.getSession()
 
-  if (!session) {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
     redirect('/auth/login')
   }
 
   const { data: profile } = await supabase
     .from('profiles')
     .select('role, first_name, last_name')
-    .eq('id', session.user.id)
+    .eq('id', user.id)
     .single()
 
   if (!profile || profile.role !== 'athlete') {
@@ -31,7 +31,7 @@ export default async function SchedulePage() {
   const { data: schedule } = await supabase
     .from('training_schedules')
     .select('*')
-    .eq('athlete_id', session.user.id)
+    .eq('athlete_id', user.id)
     .order('day_of_week', { ascending: true })
 
   const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
@@ -46,7 +46,7 @@ export default async function SchedulePage() {
             Set your weekly training schedule template
           </p>
         </div>
-        <ScheduleForm athleteId={session.user.id} />
+        <ScheduleForm athleteId={user.id} />
       </div>
 
       <div className="bg-white shadow-lg rounded-lg border border-gray-200">
@@ -86,9 +86,8 @@ export default async function SchedulePage() {
                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                       {scheduleItem.session_type}
                     </span>
-                    <ScheduleDeleteButton 
+                    <ScheduleDeleteButton
                       scheduleId={scheduleItem.id}
-                      onDeleted={() => window.location.reload()}
                     />
                   </div>
                 </div>

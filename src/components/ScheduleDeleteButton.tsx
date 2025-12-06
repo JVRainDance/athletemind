@@ -3,14 +3,16 @@
 import { useState } from 'react'
 import { Trash2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase-client'
+import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
 
 interface ScheduleDeleteButtonProps {
   scheduleId: string
-  onDeleted: () => void
 }
 
-export default function ScheduleDeleteButton({ scheduleId, onDeleted }: ScheduleDeleteButtonProps) {
+export default function ScheduleDeleteButton({ scheduleId }: ScheduleDeleteButtonProps) {
   const [loading, setLoading] = useState(false)
+  const router = useRouter()
 
   const handleDelete = async () => {
     if (!confirm('Are you sure you want to delete this schedule item? This will not affect existing sessions.')) {
@@ -27,13 +29,16 @@ export default function ScheduleDeleteButton({ scheduleId, onDeleted }: Schedule
 
       if (error) {
         console.error('Error deleting schedule:', error)
-        alert('Error deleting schedule item. Please try again.')
+        toast.error('Error deleting schedule item', {
+          description: 'Please try again or contact support'
+        })
       } else {
-        onDeleted()
+        toast.success('Schedule deleted successfully')
+        router.refresh()
       }
     } catch (error) {
       console.error('Error:', error)
-      alert('An unexpected error occurred.')
+      toast.error('An unexpected error occurred')
     } finally {
       setLoading(false)
     }
@@ -44,6 +49,7 @@ export default function ScheduleDeleteButton({ scheduleId, onDeleted }: Schedule
       onClick={handleDelete}
       disabled={loading}
       className="text-red-600 hover:text-red-500 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+      aria-label="Delete schedule item"
     >
       <Trash2 className="w-4 h-4" />
     </button>
