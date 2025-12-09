@@ -39,6 +39,7 @@ export default function AthleteDashboard() {
   const [totalStars, setTotalStars] = useState(0)
   const [userTimezone, setUserTimezone] = useState('UTC')
   const [loading, setLoading] = useState(true)
+  const [checkinCountdown, setCheckinCountdown] = useState<string>('')
   const router = useRouter()
   const supabase = createClient()
 
@@ -56,6 +57,35 @@ export default function AthleteDashboard() {
       window.removeEventListener('sessionCreated', handleSessionCreated)
     }
   }, [])
+
+  // Update checkin countdown every minute
+  useEffect(() => {
+    if (!nextSession || nextSessionCheckin) {
+      setCheckinCountdown('')
+      return
+    }
+
+    const updateCountdown = () => {
+      const now = new Date()
+      const [year, month, day] = nextSession.scheduled_date.split('-').map(Number)
+      const [startHour, startMin] = nextSession.start_time.split(':').map(Number)
+      const sessionStart = new Date(year, month - 1, day, startHour, startMin)
+      const checkinAvailableTime = new Date(sessionStart.getTime() - (60 * 60 * 1000)) // 1 hour before
+
+      if (now < checkinAvailableTime) {
+        const hoursUntil = Math.floor((checkinAvailableTime.getTime() - now.getTime()) / (1000 * 60 * 60))
+        const minutesUntil = Math.floor(((checkinAvailableTime.getTime() - now.getTime()) % (1000 * 60 * 60)) / (1000 * 60))
+        setCheckinCountdown(`${hoursUntil > 0 ? `${hoursUntil}h ` : ''}${minutesUntil}m`)
+      } else {
+        setCheckinCountdown('')
+      }
+    }
+
+    updateCountdown()
+    const interval = setInterval(updateCountdown, 60000) // Update every minute
+
+    return () => clearInterval(interval)
+  }, [nextSession, nextSessionCheckin])
 
   const fetchDashboardData = async () => {
     try {
@@ -219,15 +249,24 @@ export default function AthleteDashboard() {
               
               {/* Countdown Timer */}
               <div className="flex justify-center">
-                <SessionCountdown 
+                <SessionCountdown
                   sessionDate={nextSession.scheduled_date}
                   sessionTime={nextSession.start_time}
                 />
               </div>
-              
-              <SessionButton 
-                session={nextSession} 
-                checkin={nextSessionCheckin} 
+
+              {/* Check-in Availability Message */}
+              {checkinCountdown && (
+                <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <p className="text-sm text-blue-800 text-center">
+                    Check-in will be available in {checkinCountdown} (1 hour before session start)
+                  </p>
+                </div>
+              )}
+
+              <SessionButton
+                session={nextSession}
+                checkin={nextSessionCheckin}
               />
             </div>
           ) : (
