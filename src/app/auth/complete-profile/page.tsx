@@ -47,7 +47,7 @@ export default function CompleteProfilePage() {
             first_name: firstName,
             last_name: lastName || null,
             role,
-          })
+          } as any)
 
         if (profileError) {
           console.error('Error creating profile:', profileError)

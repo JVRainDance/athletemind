@@ -2,6 +2,7 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { getRoleRedirectPath } from '@/lib/navigation'
+import { getSupabaseUrl, getSupabaseAnonKey } from '@/lib/env'
 
 export async function middleware(request: NextRequest) {
   // Skip middleware during build time
@@ -11,12 +12,15 @@ export async function middleware(request: NextRequest) {
 
   const response = NextResponse.next()
 
-  // Use ATHLETEMIND_PUBLICSUPABASE_* variables that are set in Vercel
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.ATHLETEMIND_PUBLICSUPABASE_URL
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.ATHLETEMIND_PUBLICSUPABASE_ANON_KEY
+  let supabaseUrl: string
+  let supabaseAnonKey: string
 
-  // Only create Supabase client if we have the required environment variables
-  if (!supabaseUrl || !supabaseAnonKey) {
+  try {
+    supabaseUrl = getSupabaseUrl()
+    supabaseAnonKey = getSupabaseAnonKey()
+  } catch (error) {
+    // If env vars are missing, just continue without auth
+    console.error('Supabase environment variables not configured:', error)
     return response
   }
 

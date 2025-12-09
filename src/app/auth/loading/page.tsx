@@ -52,11 +52,12 @@ export default function AuthLoadingPage() {
         }
 
         setStatus('Redirecting to dashboard...')
-        
+
         // Redirect based on role
-        if (profile?.role === 'athlete') {
+        const userRole = (profile as any)?.role
+        if (userRole === 'athlete') {
           setTimeout(() => router.push('/dashboard/athlete'), 500)
-        } else if (profile?.role === 'coach') {
+        } else if (userRole === 'coach') {
           setTimeout(() => router.push('/dashboard/coach'), 500)
         } else {
           setTimeout(() => router.push('/dashboard'), 500)

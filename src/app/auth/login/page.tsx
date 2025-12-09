@@ -44,8 +44,10 @@ export default function LoginPage() {
 
         console.log('Profile:', profile)
 
+        const userRole = (profile as any)?.role
+
         // Generate sessions for athletes on login
-        if (profile?.role === 'athlete') {
+        if (userRole === 'athlete') {
           console.log('Generating sessions for athlete...')
           try {
             await generateSessionsForAthlete(data.user.id)
@@ -57,10 +59,10 @@ export default function LoginPage() {
         }
 
         // Redirect based on role
-        if (profile?.role === 'athlete') {
+        if (userRole === 'athlete') {
           console.log('Redirecting to athlete dashboard...')
           window.location.href = '/dashboard/athlete'
-        } else if (profile?.role === 'coach') {
+        } else if (userRole === 'coach') {
           console.log('Redirecting to coach dashboard...')
           window.location.href = '/dashboard/coach'
         } else {

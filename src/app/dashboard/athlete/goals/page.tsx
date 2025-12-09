@@ -57,7 +57,7 @@ export default function GoalsPage() {
 
       // Fetch goals for each session
       const sessionsWithGoals = await Promise.all(
-        (sessions || []).map(async (session) => {
+        (sessions || []).map(async (session: any) => {
           const { data: goals } = await supabase
             .from('session_goals')
             .select('id, goal_text')
@@ -96,7 +96,7 @@ export default function GoalsPage() {
         .insert({
           session_id: sessionId,
           goal_text: newGoal.trim()
-        })
+        } as any)
 
       if (error) {
         console.error('Error adding goal:', error)

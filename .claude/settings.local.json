@@ -5,7 +5,8 @@
       "Bash(npx supabase:*)",
       "Bash(npm install:*)",
       "Bash(docker --version:*)",
-      "Bash(npm run build:*)"
+      "Bash(npm run build:*)",
+      "Bash(npx tsc:*)"
     ],
     "deny": [],
     "ask": []
