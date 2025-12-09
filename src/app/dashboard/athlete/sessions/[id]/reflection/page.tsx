@@ -151,6 +151,33 @@ export default function ReflectionPage({ params }: PageProps) {
         console.error('Error updating session status:', sessionError)
       }
 
+      // Award star for completing the session
+      const { data: { session: authSession } } = await supabase.auth.getSession()
+      if (authSession) {
+        // Check if star already awarded for this session
+        const { data: existingStar } = await supabase
+          .from('user_stars')
+          .select('id')
+          .eq('session_id', params.id)
+          .maybeSingle()
+
+        // Only award star if not already awarded
+        if (!existingStar) {
+          const { error: starError } = await supabase
+            .from('user_stars')
+            .insert({
+              user_id: authSession.user.id,
+              session_id: params.id,
+              stars_earned: 1,
+              earned_at: new Date().toISOString()
+            })
+
+          if (starError) {
+            console.error('Error awarding star:', starError)
+          }
+        }
+      }
+
       // Navigate to progress page with celebration
       router.push('/dashboard/athlete/progress?fromSession=true')
 
