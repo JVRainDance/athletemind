@@ -39,7 +39,7 @@ export default async function SchedulePage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center space-x-4">
-        <BackButton href="/dashboard/athlete" />
+        <BackButton />
         <div className="flex-1">
           <h1 className="text-3xl font-bold text-gray-900">Training Schedule</h1>
           <p className="mt-2 text-gray-600">

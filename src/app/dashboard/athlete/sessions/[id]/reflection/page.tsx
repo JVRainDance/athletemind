@@ -210,7 +210,7 @@ export default function ReflectionPage({ params }: PageProps) {
       <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Back Button */}
         <div className="mb-6">
-          <BackButton href={`/dashboard/athlete/sessions/${params.id}`} />
+          <BackButton />
         </div>
         
         {/* Header */}

@@ -243,7 +243,7 @@ export default function AthleteProgressPage() {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Back Button */}
         <div className="mb-6">
-          <BackButton href="/dashboard/athlete" />
+          <BackButton />
         </div>
         
         {/* Header */}

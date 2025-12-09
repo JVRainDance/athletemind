@@ -251,7 +251,7 @@ export default function TrainingPage({ params }: PageProps) {
       {/* Back Button */}
       <div className="bg-white shadow-sm border-b">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <BackButton href={`/dashboard/athlete/sessions/${params.id}`} />
+          <BackButton />
         </div>
       </div>
       

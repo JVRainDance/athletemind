@@ -323,7 +323,7 @@ export default function PreTrainingCheckinPage({ params }: PageProps) {
       <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-6">
-          <BackButton href={`/dashboard/athlete/sessions/${params.id}`} />
+          <BackButton />
         </div>
         
         <div className="text-center mb-8">
