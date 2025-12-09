@@ -25,9 +25,9 @@ interface Checkin {
   id: string
   session_id: string
   energy_level: number
-  mood: string
-  goals: string
-  notes: string
+  mindset_level: number
+  reward_criteria: string | null
+  reward_earned: boolean | null
 }
 
 export default function AthleteDashboard() {
@@ -84,25 +84,10 @@ export default function AthleteDashboard() {
           .eq('id', authSession.user.id)
           .maybeSingle(),
 
-        // Query 2: Next session with checkin data (using join)
+        // Query 2: Next session (without join - will fetch checkin separately)
         supabase
           .from('training_sessions')
-          .select(`
-            id,
-            scheduled_date,
-            start_time,
-            end_time,
-            session_type,
-            status,
-            pre_training_checkins(
-              id,
-              session_id,
-              energy_level,
-              mood,
-              goals,
-              notes
-            )
-          `)
+          .select('id, scheduled_date, start_time, end_time, session_type, status')
           .eq('athlete_id', authSession.user.id)
           .in('status', ['scheduled', 'in_progress'])
           .gte('scheduled_date', today)
@@ -154,18 +139,24 @@ export default function AthleteDashboard() {
       setProfile(profileData)
       setUserTimezone(profileData.timezone || 'UTC')
 
-      // Handle next session with checkin
+      // Handle next session
       const { data: nextSessionData, error: nextSessionError } = nextSessionResult
       if (nextSessionError) {
         console.error('Error fetching next session:', nextSessionError)
         setNextSession(null)
-      } else {
+      } else if (nextSessionData) {
         console.log('Next session found:', nextSessionData)
         setNextSession(nextSessionData)
 
-        // Extract checkin from joined data
-        if (nextSessionData?.pre_training_checkins && Array.isArray(nextSessionData.pre_training_checkins) && nextSessionData.pre_training_checkins.length > 0) {
-          setNextSessionCheckin(nextSessionData.pre_training_checkins[0])
+        // Fetch checkin separately if session exists
+        const { data: checkinData } = await supabase
+          .from('pre_training_checkins')
+          .select('*')
+          .eq('session_id', nextSessionData.id)
+          .maybeSingle()
+
+        if (checkinData) {
+          setNextSessionCheckin(checkinData)
         }
       }
 
