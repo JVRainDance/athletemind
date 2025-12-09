@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { X, Calendar, Clock } from 'lucide-react'
 import { createClient } from '@/lib/supabase-client'
+import * as Dialog from '@radix-ui/react-dialog'
 
 interface TrainingSession {
   id: string
@@ -99,22 +100,26 @@ export default function AbsenceModal({ isOpen, onClose, athleteId }: AbsenceModa
     }
   }
 
-  if (!isOpen) return null
-
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
-          <h2 className="text-xl font-semibold text-gray-900">Record Training Absence</h2>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
-          >
-            <X className="w-6 h-6" />
-          </button>
-        </div>
+    <Dialog.Root open={isOpen} onOpenChange={onClose}>
+      <Dialog.Portal>
+        <Dialog.Overlay className="fixed inset-0 bg-black bg-opacity-50 z-50 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
+        <Dialog.Content className="fixed left-[50%] top-[50%] z-50 max-h-[90vh] w-[90vw] max-w-2xl translate-x-[-50%] translate-y-[-50%] overflow-y-auto rounded-lg bg-white shadow-xl data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%]">
+          <div className="flex items-center justify-between p-6 border-b border-gray-200">
+            <Dialog.Title className="text-xl font-semibold text-gray-900">
+              Record Training Absence
+            </Dialog.Title>
+            <Dialog.Close asChild>
+              <button
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+                aria-label="Close"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </Dialog.Close>
+          </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+          <form onSubmit={handleSubmit} className="p-6 space-y-6">
           {/* Session Selection */}
           <div>
             <h3 className="text-lg font-medium text-gray-900 mb-4">
@@ -230,13 +235,14 @@ export default function AbsenceModal({ isOpen, onClose, athleteId }: AbsenceModa
 
           {/* Action Buttons */}
           <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
-            >
-              Cancel
-            </button>
+            <Dialog.Close asChild>
+              <button
+                type="button"
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+              >
+                Cancel
+              </button>
+            </Dialog.Close>
             <button
               type="submit"
               disabled={!selectedSession || !selectedReason || loading || (selectedReason === 'Other' && !customReason.trim())}
@@ -246,8 +252,9 @@ export default function AbsenceModal({ isOpen, onClose, athleteId }: AbsenceModa
             </button>
           </div>
         </form>
-      </div>
-    </div>
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
   )
 }
 

@@ -106,22 +106,25 @@ export default function SessionManagementHelper({ sessionId, onUpdated }: Sessio
           <button
             onClick={handleMarkAbsent}
             disabled={loading}
-            className="inline-flex items-center px-3 py-1 border border-red-300 text-xs font-medium rounded text-red-700 bg-red-50 hover:bg-red-100 disabled:opacity-50"
+            aria-label="Mark session as absent"
+            className="inline-flex items-center px-4 py-2 border border-red-300 text-sm font-medium rounded text-red-700 bg-red-50 hover:bg-red-100 disabled:opacity-50 min-h-[44px]"
           >
-            <XCircle className="w-3 h-3 mr-1" />
+            <XCircle className="w-4 h-4 mr-2" aria-hidden="true" />
             Mark Absent
           </button>
           <button
             onClick={handleMarkCompleted}
             disabled={loading}
-            className="inline-flex items-center px-3 py-1 border border-green-300 text-xs font-medium rounded text-green-700 bg-green-50 hover:bg-green-100 disabled:opacity-50"
+            aria-label="Mark session as completed"
+            className="inline-flex items-center px-4 py-2 border border-green-300 text-sm font-medium rounded text-green-700 bg-green-50 hover:bg-green-100 disabled:opacity-50 min-h-[44px]"
           >
-            <CheckCircle className="w-3 h-3 mr-1" />
+            <CheckCircle className="w-4 h-4 mr-2" aria-hidden="true" />
             Mark Completed
           </button>
           <button
             onClick={() => setShowOptions(false)}
-            className="inline-flex items-center px-3 py-1 border border-gray-300 text-xs font-medium rounded text-gray-700 bg-gray-50 hover:bg-gray-100"
+            aria-label="Cancel session management"
+            className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded text-gray-700 bg-gray-50 hover:bg-gray-100 min-h-[44px]"
           >
             Cancel
           </button>

@@ -149,20 +149,23 @@ export default function SessionButton({ session, checkin }: SessionButtonProps) 
       ) : buttonState.disabled ? (
         <button
           disabled
+          aria-label={`${buttonState.text} - ${buttonState.description}`}
+          aria-disabled="true"
           className="inline-flex items-center px-3 py-2 sm:px-4 sm:py-2 border border-transparent text-sm font-medium rounded-md shadow-sm bg-gray-400 text-gray-200 cursor-not-allowed"
         >
-          <CheckCircle className="w-4 h-4 mr-2" />
-          <Rocket className="w-4 h-4 mr-2" />
+          <CheckCircle className="w-4 h-4 mr-2" aria-hidden="true" />
+          <Rocket className="w-4 h-4 mr-2" aria-hidden="true" />
           <span className="hidden sm:inline">{buttonState.text}</span>
           <span className="sm:hidden">Start</span>
         </button>
       ) : (
         <Link
           href={buttonState.href}
+          aria-label={`${buttonState.text} - ${buttonState.description}`}
           className="inline-flex items-center px-3 py-2 sm:px-4 sm:py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
         >
-          <CheckCircle className="w-4 h-4 mr-2" />
-          <Rocket className="w-4 h-4 mr-2" />
+          <CheckCircle className="w-4 h-4 mr-2" aria-hidden="true" />
+          <Rocket className="w-4 h-4 mr-2" aria-hidden="true" />
           <span className="hidden sm:inline">{buttonState.text}</span>
           <span className="sm:hidden">Start</span>
         </Link>

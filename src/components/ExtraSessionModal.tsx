@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { createClient } from '@/lib/supabase-client'
 import { X, Calendar, Clock, AlertCircle } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import * as Dialog from '@radix-ui/react-dialog'
 
 interface ExtraSessionModalProps {
   isOpen: boolean
@@ -97,28 +98,32 @@ export default function ExtraSessionModal({ isOpen, onClose, athleteId }: ExtraS
     onClose()
   }
 
-  if (!isOpen) return null
-
   return (
-    <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex justify-center items-center">
-      <div className="relative p-8 bg-white w-full max-w-md mx-auto rounded-lg shadow-lg border border-gray-200">
-        <button
-          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
-          onClick={handleClose}
-        >
-          <X className="h-6 w-6" />
-        </button>
-        
-        <h2 className="text-2xl font-bold text-gray-900 mb-6">Schedule Extra Training Session</h2>
+    <Dialog.Root open={isOpen} onOpenChange={(open) => !open && handleClose()}>
+      <Dialog.Portal>
+        <Dialog.Overlay className="fixed inset-0 bg-gray-600 bg-opacity-50 z-50 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
+        <Dialog.Content className="fixed left-[50%] top-[50%] z-50 w-[90vw] max-w-md translate-x-[-50%] translate-y-[-50%] rounded-lg bg-white p-8 shadow-lg border border-gray-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%]">
+          <Dialog.Close asChild>
+            <button
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
+              aria-label="Close"
+            >
+              <X className="h-6 w-6" />
+            </button>
+          </Dialog.Close>
 
-        {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4 flex items-center" role="alert">
-            <AlertCircle className="h-5 w-5 mr-3" />
-            <span className="block sm:inline">{error}</span>
-          </div>
-        )}
+          <Dialog.Title className="text-2xl font-bold text-gray-900 mb-6">
+            Schedule Extra Training Session
+          </Dialog.Title>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+          {error && (
+            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4 flex items-center" role="alert">
+              <AlertCircle className="h-5 w-5 mr-3" aria-hidden="true" />
+              <span className="block sm:inline">{error}</span>
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <label htmlFor="date" className="block text-sm font-medium text-gray-700 mb-2">
               Date *
@@ -213,17 +218,19 @@ export default function ExtraSessionModal({ isOpen, onClose, athleteId }: ExtraS
             >
               {loading ? 'Scheduling...' : 'Schedule Session'}
             </button>
-            <button
-              type="button"
-              onClick={handleClose}
-              className="flex-1 flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
-            >
-              Cancel
-            </button>
+            <Dialog.Close asChild>
+              <button
+                type="button"
+                className="flex-1 flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+              >
+                Cancel
+              </button>
+            </Dialog.Close>
           </div>
         </form>
-      </div>
-    </div>
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
   )
 }
 
