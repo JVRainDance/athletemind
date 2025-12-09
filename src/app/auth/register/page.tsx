@@ -4,7 +4,6 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase-client'
-import { generateSessionsForAthlete } from '@/lib/session-generation'
 
 export default function RegisterPage() {
   const [email, setEmail] = useState('')
@@ -24,11 +23,22 @@ export default function RegisterPage() {
     const supabase = createClient()
 
     try {
+      // Debug: Log environment configuration
+      console.log('Environment check:', {
+        hasNextPublicUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
+        hasNextPublicKey: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+        hasAthleteMindUrl: !!process.env.ATHLETEMIND_PUBLICSUPABASE_URL,
+        hasAthleteMindKey: !!process.env.ATHLETEMIND_PUBLICSUPABASE_ANON_KEY,
+        urlPrefix: (process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.ATHLETEMIND_PUBLICSUPABASE_URL)?.substring(0, 30),
+        keyPrefix: (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.ATHLETEMIND_PUBLICSUPABASE_ANON_KEY)?.substring(0, 10),
+      })
+
       // Sign up the user with metadata for profile creation
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
         password,
         options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
           data: {
             first_name: firstName,
             last_name: lastName || null,
@@ -37,18 +47,38 @@ export default function RegisterPage() {
         }
       })
 
+      console.log('Signup response:', {
+        hasUser: !!authData.user,
+        userId: authData.user?.id,
+        identitiesCount: authData.user?.identities?.length,
+        session: !!authData.session,
+        error: authError?.message,
+        errorCode: authError?.status,
+      })
+
       if (authError) {
+        console.error('Registration error:', authError)
         setError(authError.message)
         return
       }
 
       if (authData.user) {
+        console.log('User created:', authData.user.id)
+
+        // Check if email confirmation is required
+        if (authData.user.identities && authData.user.identities.length === 0) {
+          // User already exists
+          setError('An account with this email already exists. Please sign in instead.')
+          return
+        }
+
         // Redirect to email confirmation page
         // Profile will be created automatically by database trigger
         router.push('/auth/confirm-email')
       }
-    } catch (err) {
-      setError('An unexpected error occurred')
+    } catch (err: any) {
+      console.error('Unexpected error:', err)
+      setError(err?.message || 'An unexpected error occurred')
     } finally {
       setLoading(false)
     }
