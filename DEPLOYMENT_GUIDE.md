@@ -59,21 +59,17 @@ Set these in **Vercel → Settings → Environment Variables** for all environme
 ```bash
 # Primary Supabase Configuration (Used by server-side code)
 ATHLETEMIND_PUBLIC_SUPABASE_URL=https://ggkskiecojaxqaradnbm.supabase.co
-ATHLETEMIND_PUBLIC_SUPABASE_ANON_KEY=<your_anon_key>
-ATHLETEMIND_PUBLIC_SUPABASE_PUBLISHABLE_KEY=<your_anon_key>
+ATHLETEMIND_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 
 # Legacy Support (May already exist)
 ATHLETEMIND_PUBLICSUPABASE_URL=https://ggkskiecojaxqaradnbm.supabase.co
-ATHLETEMIND_PUBLICSUPABASE_ANON_KEY=<your_anon_key>
-ATHLETEMIND_PUBLICSUPABASE_PUBLISHABLE_KEY=<your_anon_key>
+ATHLETEMIND_PUBLICSUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 
 # Server-Only Variables
 SUPABASE_URL=https://ggkskiecojaxqaradnbm.supabase.co
-SUPABASE_ANON_KEY=<your_anon_key>
-SUPABASE_PUBLISHABLE_KEY=<your_anon_key>
+SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 SUPABASE_SERVICE_ROLE_KEY=<your_service_role_key>
 SUPABASE_JWT_SECRET=<your_jwt_secret>
-SUPABASE_SECRET_KEY=<your_service_role_key>
 
 # PostgreSQL (Auto-configured by Vercel if using Vercel Postgres)
 POSTGRES_URL=<postgres_connection_string>
@@ -85,19 +81,11 @@ POSTGRES_PASSWORD=<password>
 POSTGRES_DATABASE=<database_name>
 ```
 
+**Important Note**: NO `NEXT_PUBLIC_*` variables are needed! Client-side code uses hardcoded values in `src/lib/supabase-client.ts`, which is the standard Supabase practice.
+
 ### Local Development
 
-Create `.env.local` in the project root:
-
-```bash
-# Standard Next.js naming (works client-side)
-NEXT_PUBLIC_SUPABASE_URL=https://ggkskiecojaxqaradnbm.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=<your_anon_key>
-
-# Server-side only (optional for local dev)
-SUPABASE_SERVICE_ROLE_KEY=<your_service_role_key>
-SUPABASE_JWT_SECRET=<your_jwt_secret>
-```
+Your `.env.local` file already contains all necessary variables. The client-side code uses hardcoded Supabase URL and anon key (which is secure and standard practice).
 
 ## File Structure
 
@@ -135,11 +123,20 @@ Client-side Supabase client:
 import { createBrowserClient } from '@supabase/ssr'
 
 export function createClient() {
-  // Uses hardcoded public values with fallback to env vars
-  // Safe because URL and anon key are public
-  // Singleton pattern prevents multiple instances
+  // Uses hardcoded Supabase URL and anon key
+  // This is secure and follows Supabase best practices
+  // Anon keys are meant to be public and protected by RLS
+  const supabaseUrl = 'https://ggkskiecojaxqaradnbm.supabase.co'
+  const supabaseAnonKey = 'eyJhbGci...' // Full key hardcoded
+  return createBrowserClient(supabaseUrl, supabaseAnonKey)
 }
 ```
+
+**Why hardcoded values are safe:**
+- Supabase anon keys are designed to be public
+- Protected by Row Level Security (RLS) policies
+- Standard practice recommended by Supabase
+- No dependency on environment variable configuration
 
 ### Authentication Files
 
