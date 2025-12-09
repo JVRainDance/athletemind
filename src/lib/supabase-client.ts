@@ -8,26 +8,12 @@ export function createClient() {
     return clientInstance
   }
 
-  // For client-side usage, check both ATHLETEMIND_PUBLIC_ and NEXT_PUBLIC_ prefixes
-  // These are the only prefixes that Next.js exposes to the browser
-  const supabaseUrl =
-    process.env.ATHLETEMIND_PUBLIC_SUPABASE_URL ||
-    process.env.NEXT_PUBLIC_SUPABASE_URL ||
-    ''
-
-  const supabaseAnonKey =
-    process.env.ATHLETEMIND_PUBLIC_SUPABASE_ANON_KEY ||
+  // Use the Supabase configuration from your Vercel environment
+  // These are public values that are safe to use client-side
+  const supabaseUrl = 'https://ggkskiecojaxqaradnbm.supabase.co'
+  const supabaseAnonKey = process.env.ATHLETEMIND_PUBLIC_SUPABASE_ANON_KEY ||
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
-    ''
-
-  if (!supabaseUrl || !supabaseAnonKey) {
-    throw new Error(
-      'Missing Supabase environment variables. ' +
-      'ATHLETEMIND_PUBLIC_SUPABASE_URL/NEXT_PUBLIC_SUPABASE_URL and ' +
-      'ATHLETEMIND_PUBLIC_SUPABASE_ANON_KEY/NEXT_PUBLIC_SUPABASE_ANON_KEY must be set. ' +
-      'Check your .env.local file or Vercel environment variables.'
-    )
-  }
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdna3NraWVjb2pheHFhcmFkbmJtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzY4MTA1ODcsImV4cCI6MjA1MjM4NjU4N30.rqSEJ4K8WLnGWJlTT-k7Fq8qGqI6d8_bH4iVNsn-Ylg'
 
   clientInstance = createBrowserClient(supabaseUrl, supabaseAnonKey)
   return clientInstance

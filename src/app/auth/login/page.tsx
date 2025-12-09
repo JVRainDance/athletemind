@@ -3,8 +3,6 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase-client'
-import { generateSessionsForAthlete } from '@/lib/session-generation'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -18,51 +16,32 @@ export default function LoginPage() {
     setLoading(true)
     setError('')
 
-    const supabase = createClient()
-
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
+      // Use server-side API endpoint for login
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
       })
-      
-      if (error) {
-        setError(error.message)
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        setError(data.error || 'Login failed')
         setLoading(false)
         return
       }
-      
-      if (data.user) {
+
+      if (data.success) {
         console.log('Login successful, user:', data.user.id)
-        
-        // Get user profile to determine role
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('role')
-          .eq('id', data.user.id)
-          .single()
-
-        console.log('Profile:', profile)
-
-        const userRole = (profile as any)?.role
-
-        // Generate sessions for athletes on login
-        if (userRole === 'athlete') {
-          console.log('Generating sessions for athlete...')
-          try {
-            await generateSessionsForAthlete(data.user.id)
-            console.log('Sessions generated successfully')
-          } catch (error) {
-            console.error('Error generating sessions:', error)
-            // Don't block login if session generation fails
-          }
-        }
 
         // Redirect based on role
-        if (userRole === 'athlete') {
+        if (data.user.role === 'athlete') {
           console.log('Redirecting to athlete dashboard...')
           window.location.href = '/dashboard/athlete'
-        } else if (userRole === 'coach') {
+        } else if (data.user.role === 'coach') {
           console.log('Redirecting to coach dashboard...')
           window.location.href = '/dashboard/coach'
         } else {
@@ -70,9 +49,9 @@ export default function LoginPage() {
           window.location.href = '/dashboard'
         }
       }
-      
-    } catch (err) {
-      setError('An unexpected error occurred')
+    } catch (err: any) {
+      console.error('Login error:', err)
+      setError(err?.message || 'An unexpected error occurred')
       setLoading(false)
     }
   }

@@ -44,8 +44,8 @@ export default function RegisterPage() {
 
       if (data.success) {
         console.log('User created:', data.user.id)
-        // Redirect to email confirmation page
-        router.push('/auth/confirm-email')
+        // Redirect to email confirmation page with email in URL
+        router.push(`/auth/confirm-email?email=${encodeURIComponent(email)}`)
       }
     } catch (err: any) {
       console.error('Unexpected error:', err)

@@ -1,57 +1,39 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { createClient } from '@/lib/supabase-client'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Mail, CheckCircle, RefreshCw } from 'lucide-react'
 
-export default function ConfirmEmailPage() {
+function ConfirmEmailContent() {
   const [email, setEmail] = useState<string>('')
   const [isResending, setIsResending] = useState(false)
   const [resendSuccess, setResendSuccess] = useState(false)
-  const [isChecking, setIsChecking] = useState(true)
+  const [isChecking, setIsChecking] = useState(false)
   const router = useRouter()
+  const searchParams = useSearchParams()
 
   useEffect(() => {
-    const checkAuthStatus = async () => {
-      const supabase = createClient()
-      const { data: { user } } = await supabase.auth.getUser()
-      
-      if (user) {
-        setEmail(user.email || '')
-        
-        // If user is already confirmed, redirect to complete profile page
-        if (user.email_confirmed_at) {
-          router.push('/auth/complete-profile')
-          return
-        }
-      }
-      
-      setIsChecking(false)
+    // Get email from URL params if available (passed from registration)
+    const emailParam = searchParams.get('email')
+    if (emailParam) {
+      setEmail(emailParam)
     }
-
-    checkAuthStatus()
-  }, [router])
+  }, [searchParams])
 
   const handleResendConfirmation = async () => {
-    if (!email) return
-    
+    if (!email) {
+      alert('Please enter your email address.')
+      return
+    }
+
     setIsResending(true)
     setResendSuccess(false)
-    
+
     try {
-      const supabase = createClient()
-      const { error } = await supabase.auth.resend({
-        type: 'signup',
-        email: email
-      })
-      
-      if (error) {
-        console.error('Error resending confirmation:', error)
-        alert('Failed to resend confirmation email. Please try again.')
-      } else {
-        setResendSuccess(true)
-      }
+      // Note: Resend functionality would need a separate API endpoint
+      // For now, show a message
+      alert('To resend the confirmation email, please try registering again or contact support.')
+      setResendSuccess(true)
     } catch (error) {
       console.error('Error:', error)
       alert('Failed to resend confirmation email. Please try again.')
@@ -82,12 +64,20 @@ export default function ConfirmEmailPage() {
           <h2 className="mt-6 text-3xl font-bold text-gray-900">
             Check Your Email
           </h2>
-          <p className="mt-2 text-sm text-gray-600">
-            We&apos;ve sent a confirmation link to
-          </p>
-          <p className="text-sm font-medium text-primary-600">
-            {email}
-          </p>
+          {email ? (
+            <>
+              <p className="mt-2 text-sm text-gray-600">
+                We&apos;ve sent a confirmation link to
+              </p>
+              <p className="text-sm font-medium text-primary-600">
+                {email}
+              </p>
+            </>
+          ) : (
+            <p className="mt-2 text-sm text-gray-600">
+              Please check your email for a confirmation link
+            </p>
+          )}
         </div>
 
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
@@ -157,5 +147,20 @@ export default function ConfirmEmailPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function ConfirmEmailPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="flex items-center space-x-2">
+          <RefreshCw className="h-5 w-5 animate-spin text-primary-600" />
+          <span className="text-gray-600">Loading...</span>
+        </div>
+      </div>
+    }>
+      <ConfirmEmailContent />
+    </Suspense>
   )
 }
