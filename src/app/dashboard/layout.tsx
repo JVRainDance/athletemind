@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
 import { getFullName } from '@/lib/utils'
 import ProfileDropdown from '@/components/ProfileDropdown'
+import Link from 'next/link'
 
 export default async function DashboardLayout({
   children,
@@ -28,20 +29,27 @@ export default async function DashboardLayout({
     redirect('/auth/login')
   }
 
+  // Determine dashboard home based on role
+  const dashboardHome = profile.role === 'coach' ? '/dashboard/coach' : '/dashboard/athlete'
+
   return (
     <div className="min-h-screen bg-gray-100">
       <nav className="bg-white shadow-md border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex items-center">
-              <h1 className="text-xl font-semibold text-gray-900">
+              <Link
+                href={dashboardHome}
+                className="text-xl font-semibold text-gray-900 hover:text-primary-600 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded px-2 py-1"
+                aria-label="Go to dashboard home"
+              >
                 AthleteMind
-              </h1>
+              </Link>
             </div>
             <div className="flex items-center">
-              <ProfileDropdown 
-                firstName={profile.first_name} 
-                lastName={profile.last_name} 
+              <ProfileDropdown
+                firstName={profile.first_name}
+                lastName={profile.last_name}
               />
             </div>
           </div>
