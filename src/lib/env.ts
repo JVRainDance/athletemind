@@ -18,12 +18,12 @@ export const getSupabaseUrl = (): string => {
 }
 
 export const getSupabaseAnonKey = (): string => {
-  // Priority order: ATHLETEMIND_PUBLIC_ (Vercel) -> NEXT_PUBLIC_ (standard) -> fallbacks
+  // Priority order: SUPABASE_PUBLISHABLE_KEY (Vercel) -> ATHLETEMIND_ (Vercel) -> NEXT_PUBLIC_ (standard)
   const key =
+    process.env.SUPABASE_PUBLISHABLE_KEY ||
     process.env.ATHLETEMIND_PUBLIC_SUPABASE_ANON_KEY ||
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
     process.env.ATHLETEMIND_PUBLICSUPABASE_ANON_KEY ||
-    process.env.SUPABASE_ANON_KEY ||
     ''
 
   if (!key) {
