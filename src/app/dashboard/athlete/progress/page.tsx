@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase-client'
 import { Database } from '@/types/database'
 import { Flame, Star, Gift, Target, BarChart3, Calendar, ArrowRight, Sparkles } from 'lucide-react'
@@ -378,9 +379,12 @@ export default function AthleteProgressPage() {
                 <div className="flex items-center text-gray-600">
                   <span className="mr-2">Completed</span>
                   <Star className="h-4 w-4 text-yellow-500 mr-1" />
-                  <span className="text-sm text-primary-600 cursor-pointer hover:underline">
-                    Click to view
-                  </span>
+                  <Link
+                    href={`/dashboard/athlete/sessions/${session.id}/reflection`}
+                    className="text-sm text-primary-600 hover:underline"
+                  >
+                    View details →
+                  </Link>
                 </div>
               </div>
             ))}

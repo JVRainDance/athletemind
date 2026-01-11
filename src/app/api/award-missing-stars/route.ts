@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase-server'
 
+export const dynamic = 'force-dynamic'
+
 /**
  * One-time API endpoint to award stars for completed sessions that don't have stars yet
  * This fixes the issue where sessions were completed before the star-awarding logic was implemented
