@@ -68,12 +68,12 @@ export default async function CoachDashboard() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-4 sm:space-y-0">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-4 sm:space-y-0 mb-8">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+          <h1 className="text-3xl font-bold text-gray-900">
             Coach Dashboard
           </h1>
-          <p className="mt-2 text-gray-600">
+          <p className="mt-2 text-base text-gray-600">
             Monitor your athletes&apos; progress and training sessions
           </p>
         </div>
@@ -88,8 +88,8 @@ export default async function CoachDashboard() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-        <div className="bg-white overflow-hidden shadow rounded-lg">
-          <div className="p-5">
+        <div className="bg-white overflow-hidden shadow-sm rounded-lg border border-gray-200">
+          <div className="p-6">
             <div className="flex items-center">
               <div className="flex-shrink-0">
                 <Users className="h-6 w-6 text-primary-600" />
@@ -108,8 +108,8 @@ export default async function CoachDashboard() {
           </div>
         </div>
 
-        <div className="bg-white overflow-hidden shadow rounded-lg">
-          <div className="p-5">
+        <div className="bg-white overflow-hidden shadow-sm rounded-lg border border-gray-200">
+          <div className="p-6">
             <div className="flex items-center">
               <div className="flex-shrink-0">
                 <TrendingUp className="h-6 w-6 text-secondary-600" />
@@ -128,8 +128,8 @@ export default async function CoachDashboard() {
           </div>
         </div>
 
-        <div className="bg-white overflow-hidden shadow rounded-lg">
-          <div className="p-5">
+        <div className="bg-white overflow-hidden shadow-sm rounded-lg border border-gray-200">
+          <div className="p-6">
             <div className="flex items-center">
               <div className="flex-shrink-0">
                 <CheckCircle className="h-6 w-6 text-green-600" />
@@ -148,8 +148,8 @@ export default async function CoachDashboard() {
           </div>
         </div>
 
-        <div className="bg-white overflow-hidden shadow rounded-lg">
-          <div className="p-5">
+        <div className="bg-white overflow-hidden shadow-sm rounded-lg border border-gray-200">
+          <div className="p-6">
             <div className="flex items-center">
               <div className="flex-shrink-0">
                 <Calendar className="h-6 w-6 text-purple-600" />
@@ -170,8 +170,8 @@ export default async function CoachDashboard() {
       </div>
 
       {/* Athletes List */}
-      <div className="bg-white shadow rounded-lg">
-        <div className="px-4 py-5 sm:p-6">
+      <div className="bg-white shadow-sm rounded-lg border border-gray-200">
+        <div className="p-6">
           <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
             Athletes Overview
           </h3>

@@ -38,19 +38,18 @@ export default async function SchedulePage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center space-x-4">
-        <BackButton />
-        <div className="flex-1">
+      <div className="flex items-center justify-between mb-8">
+        <div>
           <h1 className="text-3xl font-bold text-gray-900">Training Schedule</h1>
-          <p className="mt-2 text-gray-600">
+          <p className="mt-2 text-base text-gray-600">
             Set your weekly training schedule template
           </p>
         </div>
         <ScheduleForm athleteId={user.id} />
       </div>
 
-      <div className="bg-white shadow-lg rounded-lg border border-gray-200">
-        <div className="px-4 py-5 sm:p-6">
+      <div className="bg-white shadow-sm rounded-lg border border-gray-200">
+        <div className="p-6">
           <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
             Your Weekly Training Schedule
           </h3>

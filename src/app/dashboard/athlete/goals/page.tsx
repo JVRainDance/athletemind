@@ -163,21 +163,18 @@ export default function GoalsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center space-x-4">
-        <BackButton />
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Training Goals</h1>
-          <p className="mt-2 text-gray-600">
-            Set goals for your upcoming training sessions (up to 7 days in advance)
-          </p>
-        </div>
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900">Training Goals</h1>
+        <p className="mt-2 text-base text-gray-600">
+          Set goals for your upcoming training sessions (up to 7 days in advance)
+        </p>
       </div>
 
       {upcomingSessions.length > 0 ? (
         <div className="space-y-6">
           {upcomingSessions.map((session) => (
-            <div key={session.id} className="bg-white shadow rounded-lg">
-              <div className="px-6 py-4 border-b border-gray-200">
+            <div key={session.id} className="bg-white shadow-sm rounded-lg border border-gray-200">
+              <div className="p-6 border-b border-gray-200">
                 <div className="flex items-center justify-between">
                   <div>
                     <h3 className="text-lg font-medium text-gray-900">
@@ -216,7 +213,7 @@ export default function GoalsPage() {
                 </div>
               </div>
 
-              <div className="px-6 py-4">
+              <div className="p-6">
                 {/* Add Goal Form */}
                 {showAddGoal === session.id && (
                   <div className="mb-4 p-4 bg-gray-50 rounded-lg">
@@ -315,8 +312,8 @@ export default function GoalsPage() {
           ))}
         </div>
       ) : (
-        <div className="bg-white shadow rounded-lg">
-          <div className="px-6 py-12 text-center">
+        <div className="bg-white shadow-sm rounded-lg border border-gray-200">
+          <div className="p-12 text-center">
             <Calendar className="mx-auto h-12 w-12 text-gray-400" />
             <h3 className="mt-2 text-sm font-medium text-gray-900">No upcoming sessions</h3>
             <p className="mt-1 text-sm text-gray-500">

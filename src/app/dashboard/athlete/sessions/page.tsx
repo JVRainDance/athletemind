@@ -227,19 +227,16 @@ export default function SessionsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center space-x-4">
-        <BackButton />
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Training Sessions</h1>
-          <p className="mt-2 text-gray-600">
-            Manage your training sessions and track your progress
-          </p>
-        </div>
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900">Training Sessions</h1>
+        <p className="mt-2 text-base text-gray-600">
+          Manage your training sessions and track your progress
+        </p>
       </div>
 
       {/* Sessions List */}
-      <div className="bg-white shadow rounded-lg">
-        <div className="px-4 py-5 sm:p-6">
+      <div className="bg-white shadow-sm rounded-lg border border-gray-200">
+        <div className="p-6">
           <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
             All Sessions
           </h3>
@@ -248,7 +245,7 @@ export default function SessionsPage() {
               {sessions.map((session) => (
                 <div
                   key={session.id}
-                  className="border border-gray-200 rounded-lg p-4"
+                  className="border border-gray-200 rounded-lg p-5 hover:bg-gray-50 transition-colors"
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-4">

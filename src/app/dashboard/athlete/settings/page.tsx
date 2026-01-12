@@ -73,20 +73,17 @@ export default function SettingsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center space-x-4">
-        <BackButton />
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Settings</h1>
-          <p className="mt-2 text-gray-600">
-            Manage your account settings and preferences
-          </p>
-        </div>
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900">Settings</h1>
+        <p className="mt-2 text-base text-gray-600">
+          Manage your account settings and preferences
+        </p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Account Settings */}
-        <div className="bg-white shadow rounded-lg">
-          <div className="px-4 py-5 sm:p-6">
+        <div className="bg-white shadow-sm rounded-lg border border-gray-200">
+          <div className="p-6">
             <div className="flex items-center mb-4">
               <User className="h-5 w-5 text-gray-400 mr-2" />
               <h3 className="text-lg leading-6 font-medium text-gray-900">
@@ -132,8 +129,8 @@ export default function SettingsPage() {
         </div>
 
         {/* Preferences */}
-        <div className="bg-white shadow rounded-lg">
-          <div className="px-4 py-5 sm:p-6">
+        <div className="bg-white shadow-sm rounded-lg border border-gray-200">
+          <div className="p-6">
             <div className="flex items-center mb-4">
               <Palette className="h-5 w-5 text-gray-400 mr-2" />
               <h3 className="text-lg leading-6 font-medium text-gray-900">
@@ -156,8 +153,8 @@ export default function SettingsPage() {
         </div>
 
         {/* Notifications */}
-        <div className="bg-white shadow rounded-lg">
-          <div className="px-4 py-5 sm:p-6">
+        <div className="bg-white shadow-sm rounded-lg border border-gray-200">
+          <div className="p-6">
             <div className="flex items-center mb-4">
               <Bell className="h-5 w-5 text-gray-400 mr-2" />
               <h3 className="text-lg leading-6 font-medium text-gray-900">
