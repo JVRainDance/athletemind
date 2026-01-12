@@ -226,6 +226,63 @@ export default function AthleteProgressPage() {
     return sortedRewards.find(reward => reward.stars_required > stats.totalStars) || sortedRewards[0]
   }
 
+  // Generate dynamic motivational message based on progress
+  const getMotivationalMessage = () => {
+    const { currentStreak, totalStars, goalCompletion, weeklyConsistency } = stats
+
+    // Excellent performance
+    if (currentStreak >= 7 && goalCompletion >= 80) {
+      return {
+        title: `Outstanding, ${userName}!`,
+        message: `You're on a ${currentStreak}-session streak with ${goalCompletion}% goal completion. You're absolutely crushing it!`,
+        emoji: '🔥'
+      }
+    }
+
+    // Great streak
+    if (currentStreak >= 5) {
+      return {
+        title: `Incredible Momentum, ${userName}!`,
+        message: `${currentStreak} sessions in a row! Your consistency is building real results.`,
+        emoji: '💪'
+      }
+    }
+
+    // Good goal completion but no streak
+    if (goalCompletion >= 75) {
+      return {
+        title: `Excellent Focus, ${userName}!`,
+        message: `${goalCompletion}% of your goals achieved. Your dedication to your objectives is impressive!`,
+        emoji: '🎯'
+      }
+    }
+
+    // Has some stars but needs improvement
+    if (totalStars > 0 && currentStreak < 3) {
+      return {
+        title: `Keep Building, ${userName}!`,
+        message: `You've earned ${totalStars} stars. Stay consistent to unlock even more progress!`,
+        emoji: '⭐'
+      }
+    }
+
+    // Just starting or struggling
+    if (totalStars === 0 || stats.recentSessions.length === 0) {
+      return {
+        title: `Let's Get Started, ${userName}!`,
+        message: `Your journey begins now. Complete your first session to start building momentum!`,
+        emoji: '🚀'
+      }
+    }
+
+    // Default encouraging message
+    return {
+      title: `Great Progress, ${userName}!`,
+      message: `You're on your way! Every session brings you closer to your goals.`,
+      emoji: '💫'
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -238,190 +295,185 @@ export default function AthleteProgressPage() {
   }
 
   const nextReward = getNextReward()
+  const motivation = getMotivationalMessage()
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Back Button */}
-        <div className="mb-6">
-          <BackButton />
-        </div>
-        
-        {/* Header */}
-        <div className="text-center mb-8">
-          {showCelebration ? (
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <div className="flex items-center justify-center mb-4">
-                <Sparkles className="h-8 w-8 text-yellow-500 mr-2" />
-                <h1 className="text-3xl font-bold text-gray-900">
-                  Awesome Work Today!
-                </h1>
-              </div>
-              <p className="text-lg text-gray-600">
-                Here&apos;s how you&apos;re progressing, {userName}
-              </p>
-            </div>
-          ) : (
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                Your Progress
-              </h1>
-              <p className="text-lg text-gray-600">
-                Keep up the great work, {userName}!
-              </p>
-            </div>
-          )}
-        </div>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900">Your Progress</h1>
+        <p className="mt-2 text-base text-gray-600">
+          Track your journey and celebrate your achievements
+        </p>
+      </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
-          {/* Current Streak */}
-          <div className="bg-white rounded-lg shadow-sm p-6">
-            <div className="flex items-center mb-4">
-              <Flame className="h-6 w-6 text-orange-500 mr-3" />
-              <h3 className="text-lg font-semibold text-gray-900">Current Streak</h3>
-            </div>
-            <div className="text-3xl font-bold text-orange-500 mb-2">
-              {stats.currentStreak} sessions
-            </div>
-            <p className="text-gray-600">In a row! Keep it going!</p>
+      {/* Motivational Banner */}
+      <div className="bg-gradient-to-r from-primary-500 to-primary-600 rounded-lg shadow-sm p-6 text-white">
+        <div className="flex items-start space-x-4">
+          <div className="text-4xl">{motivation.emoji}</div>
+          <div className="flex-1">
+            <h2 className="text-2xl font-bold mb-2">{motivation.title}</h2>
+            <p className="text-primary-50 text-lg">{motivation.message}</p>
           </div>
+        </div>
+      </div>
 
-          {/* Total Stars */}
-          <div className="bg-white rounded-lg shadow-sm p-6">
-            <div className="flex items-center mb-4">
-              <Star className="h-6 w-6 text-yellow-500 mr-3" />
-              <h3 className="text-lg font-semibold text-gray-900">Total Stars Earned</h3>
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Current Streak */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <div className="flex flex-col space-y-3">
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Current Streak</p>
+              <Flame className={`h-5 w-5 ${stats.currentStreak >= 5 ? 'text-orange-500' : 'text-gray-400'}`} />
             </div>
-            <div className="text-3xl font-bold text-yellow-500 mb-2">
-              {stats.totalStars} ⭐
+            <div className="text-3xl font-bold text-orange-500">
+              {stats.currentStreak}
             </div>
-            <p className="text-gray-600">Amazing progress!</p>
+            <p className="text-sm text-gray-600">
+              {stats.currentStreak === 0 ? 'Start your streak today!' :
+               stats.currentStreak === 1 ? 'Great start! Keep going.' :
+               stats.currentStreak < 5 ? 'Building momentum!' :
+               stats.currentStreak < 10 ? 'On fire! 🔥' :
+               'Unstoppable! 🔥🔥'}
+            </p>
           </div>
+        </div>
 
-          {/* Next Reward Progress */}
-          {nextReward && (
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <div className="flex items-center mb-4">
-                <Gift className="h-6 w-6 text-primary-500 mr-3" />
-                <h3 className="text-lg font-semibold text-gray-900">Next Reward Progress</h3>
-              </div>
-              <div className="text-xl font-semibold text-gray-900 mb-2">
-                {nextReward.reward_name}
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
-                <div 
-                  className="bg-primary-500 h-2 rounded-full transition-all duration-300"
-                  style={{ width: `${Math.min(100, (stats.totalStars / nextReward.stars_required) * 100)}%` }}
-                ></div>
-              </div>
-              <p className="text-gray-600">
-                {nextReward.stars_required - stats.totalStars > 0 
-                  ? `${nextReward.stars_required - stats.totalStars} more stars to go!`
-                  : 'Reward unlocked!'
-                }
-              </p>
+        {/* Total Stars */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <div className="flex flex-col space-y-3">
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Total Stars</p>
+              <Star className="h-5 w-5 text-yellow-500 fill-yellow-500" />
             </div>
-          )}
+            <div className="text-3xl font-bold text-yellow-600">
+              {stats.totalStars}
+            </div>
+            <p className="text-sm text-gray-600">
+              {stats.totalStars === 0 ? 'Earn your first star!' :
+               stats.totalStars < 10 ? 'Off to a great start!' :
+               stats.totalStars < 50 ? 'Building your collection!' :
+               stats.totalStars < 100 ? 'Impressive progress!' :
+               'Star collector! ⭐'}
+            </p>
+          </div>
+        </div>
 
-          {/* Goal Completion */}
-          <div className="bg-white rounded-lg shadow-sm p-6">
-            <div className="flex items-center mb-4">
-              <Target className="h-6 w-6 text-green-500 mr-3" />
-              <h3 className="text-lg font-semibold text-gray-900">Goal Completion</h3>
+        {/* Goal Completion */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <div className="flex flex-col space-y-3">
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Goal Rate</p>
+              <Target className={`h-5 w-5 ${stats.goalCompletion >= 75 ? 'text-green-500' : 'text-gray-400'}`} />
             </div>
-            <div className="text-3xl font-bold text-green-500 mb-2">
+            <div className="text-3xl font-bold text-green-600">
               {stats.goalCompletion}%
             </div>
-            <p className="text-gray-600">completed this week</p>
+            <p className="text-sm text-gray-600">
+              {stats.goalCompletion === 0 ? 'Set your first goal!' :
+               stats.goalCompletion < 50 ? 'Room to improve' :
+               stats.goalCompletion < 75 ? 'Getting there!' :
+               stats.goalCompletion < 90 ? 'Excellent focus! 🎯' :
+               'Precision! 🎯🎯'}
+            </p>
           </div>
         </div>
 
         {/* Weekly Consistency */}
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
-          <div className="flex items-center mb-4">
-            <BarChart3 className="h-6 w-6 text-primary-500 mr-3" />
-            <h3 className="text-lg font-semibold text-gray-900">Last 4 Weeks Consistency</h3>
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <div className="flex flex-col space-y-3">
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Consistency</p>
+              <BarChart3 className={`h-5 w-5 ${stats.weeklyConsistency >= 80 ? 'text-primary-500' : 'text-gray-400'}`} />
+            </div>
+            <div className="text-3xl font-bold text-primary-600">
+              {Math.round(stats.weeklyConsistency)}%
+            </div>
+            <p className="text-sm text-gray-600">
+              {stats.weeklyConsistency === 0 ? 'Start building!' :
+               stats.weeklyConsistency < 50 ? 'Keep showing up' :
+               stats.weeklyConsistency < 75 ? 'Good consistency!' :
+               stats.weeklyConsistency < 90 ? 'Very reliable! 💪' :
+               'Rock solid! 💪💪'}
+            </p>
           </div>
-          <div className="text-3xl font-bold text-primary-600 mb-2">
-            {Math.round(stats.weeklyConsistency)}%
+        </div>
+      </div>
+
+      {/* Next Reward Card */}
+      {nextReward && (
+        <div className="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-lg shadow-sm border-2 border-yellow-200 p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-gray-900">Next Reward</h3>
+            <Gift className="h-6 w-6 text-yellow-600" />
           </div>
-          <p className="text-gray-600 mb-4">of scheduled sessions logged.</p>
-          <div className="w-full bg-gray-200 rounded-full h-3">
-            <div 
-              className="bg-primary-500 h-3 rounded-full transition-all duration-300"
-              style={{ width: `${stats.weeklyConsistency}%` }}
-            ></div>
+          <p className="text-xl font-bold text-gray-900 mb-4">{nextReward.reward_name}</p>
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-sm">
+              <span className="font-medium text-gray-700">Progress</span>
+              <span className="font-semibold text-gray-900">
+                {stats.totalStars} / {nextReward.stars_required} stars
+              </span>
+            </div>
+            <div className="relative w-full bg-gray-200 rounded-full h-4 overflow-hidden">
+              <div
+                className="absolute inset-y-0 left-0 bg-gradient-to-r from-yellow-400 to-yellow-500 rounded-full transition-all duration-500"
+                style={{ width: `${Math.min(100, (stats.totalStars / nextReward.stars_required) * 100)}%` }}
+              />
+            </div>
           </div>
-          <p className="text-gray-600 mt-2">
-            {stats.weeklyConsistency >= 90 
-              ? 'Excellent consistency! Keep up the great work.'
-              : 'Good progress! Try to maintain consistency.'
-            }
+          <p className="text-sm text-gray-700 mt-4">
+            {nextReward.stars_required - stats.totalStars > 0
+              ? `${nextReward.stars_required - stats.totalStars} more stars to unlock!`
+              : '🎉 Reward unlocked! Claim it on your dashboard.'}
           </p>
         </div>
+      )}
 
-        {/* Recent Sessions */}
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
-          <div className="flex items-center mb-4">
-            <Calendar className="h-6 w-6 text-primary-500 mr-3" />
-            <h3 className="text-lg font-semibold text-gray-900">Recent Sessions</h3>
-          </div>
+      {/* Recent Sessions */}
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-5">Recent Sessions</h3>
+        {stats.recentSessions.length > 0 ? (
           <div className="space-y-3">
             {stats.recentSessions.map((session) => (
-              <div key={session.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <div className="flex items-center">
-                  <div className="w-3 h-3 bg-green-500 rounded-full mr-3"></div>
-                  <span className="text-gray-900 font-medium">
-                    {formatDate(session.scheduled_date)}
-                  </span>
+              <div key={session.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                <div className="flex items-center space-x-3">
+                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                  <div>
+                    <p className="text-sm font-semibold text-gray-900">
+                      {formatDate(session.scheduled_date)}
+                    </p>
+                    <p className="text-xs text-gray-600">Completed</p>
+                  </div>
                 </div>
-                <div className="flex items-center text-gray-600">
-                  <span className="mr-2">Completed</span>
-                  <Star className="h-4 w-4 text-yellow-500 mr-1" />
-                  <Link
-                    href={`/dashboard/athlete/sessions/${session.id}/reflection`}
-                    className="text-sm text-primary-600 hover:underline"
-                  >
-                    View details →
-                  </Link>
-                </div>
+                <Link
+                  href={`/dashboard/athlete/sessions/${session.id}/reflection`}
+                  className="inline-flex items-center text-sm font-medium text-primary-600 hover:text-primary-700"
+                >
+                  View details →
+                </Link>
               </div>
             ))}
           </div>
-        </div>
-
-        {/* Encouragement Message */}
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
-          <div className="text-center">
-            <div className="flex items-center justify-center mb-4">
-              <Sparkles className="h-6 w-6 text-yellow-500 mr-2" />
-              <h3 className="text-xl font-semibold text-gray-900">
-                You&apos;re doing amazing, {userName}!
-              </h3>
-            </div>
-            <p className="text-gray-600 mb-4">
-              Your dedication and consistency are paying off. Keep pushing towards your goals!
-            </p>
-            {stats.currentStreak >= 10 && (
-              <div className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-orange-100 text-orange-800">
-                <Flame className="h-4 w-4 mr-1" />
-                Streak Champion!
-              </div>
-            )}
+        ) : (
+          <div className="text-center py-8">
+            <Calendar className="mx-auto h-12 w-12 text-gray-400 mb-3" />
+            <p className="text-gray-600">No completed sessions yet</p>
+            <p className="text-sm text-gray-500 mt-1">Complete your first session to see it here!</p>
           </div>
-        </div>
+        )}
+      </div>
 
-        {/* Continue Button */}
-        <div className="text-center">
-          <button
-            onClick={() => router.push('/dashboard/athlete')}
-            className="inline-flex items-center px-8 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
-          >
-            Continue to Dashboard
-            <ArrowRight className="h-5 w-5 ml-2" />
-          </button>
-        </div>
+      {/* Continue Button */}
+      <div className="text-center">
+        <button
+          onClick={() => router.push('/dashboard/athlete')}
+          className="inline-flex items-center px-8 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+        >
+          Continue to Dashboard
+          <ArrowRight className="h-5 w-5 ml-2" />
+        </button>
       </div>
     </div>
   )
