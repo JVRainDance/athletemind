@@ -275,8 +275,10 @@ export default function AthleteDashboard() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <p className="mt-2 text-gray-600">
+      {/* Page Header */}
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+        <p className="mt-2 text-base text-gray-600">
           Ready to show up, reflect, and build momentum.
         </p>
       </div>
@@ -290,8 +292,8 @@ export default function AthleteDashboard() {
       />
 
       {/* Next Training Session Card */}
-      <div className="bg-white shadow-lg rounded-lg border border-gray-200">
-        <div className="px-4 py-5 sm:p-6 text-center">
+      <div className="bg-white shadow-sm rounded-lg border border-gray-200">
+        <div className="p-6 text-center">
           <h2 className="text-lg leading-6 font-medium text-gray-900 mb-4">
             Your next available training is...
           </h2>
@@ -352,15 +354,15 @@ export default function AthleteDashboard() {
       </div>
 
       {/* Training Actions Card */}
-      <div className="bg-white shadow-lg rounded-lg border border-gray-200">
-        <div className="px-4 py-5 sm:p-6">
-          <h2 className="text-lg leading-6 font-medium text-gray-900 mb-4">Training Actions</h2>
-          <div className="flex flex-col sm:flex-row gap-3 mb-4">
+      <div className="bg-white shadow-sm rounded-lg border border-gray-200">
+        <div className="p-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Training Actions</h2>
+          <div className="flex flex-col sm:flex-row gap-3">
             <AbsenceButton athleteId={session.user.id} />
             <ExtraSessionButton athleteId={session.user.id} />
             <Link
               href="/dashboard/athlete/progress"
-              className="inline-flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+              className="inline-flex items-center justify-center px-4 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
             >
               <BarChart3 className="w-4 h-4 mr-2" />
               View Progress
@@ -371,30 +373,32 @@ export default function AthleteDashboard() {
 
       {/* Rewards Card - Only show if user has rewards set up */}
       {nextReward && (
-        <div className="bg-white shadow-lg rounded-lg border border-gray-200">
-          <div className="px-4 py-5 sm:p-6">
-            <div className="flex items-center space-x-2 mb-4">
-              <h2 className="text-lg leading-6 font-medium text-gray-900">Your Next Reward</h2>
-              <div className="w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center">
-                <Star className="w-4 h-4 text-white" />
+        <div className="bg-gradient-to-br from-yellow-50 to-orange-50 shadow-sm rounded-lg border-2 border-yellow-200">
+          <div className="p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-gray-900">Next Reward</h2>
+              <div className="w-10 h-10 bg-yellow-500 rounded-full flex items-center justify-center shadow-sm">
+                <Star className="w-5 h-5 text-white fill-white" />
               </div>
             </div>
-            <div className="space-y-3">
-              <p className="text-lg font-medium text-gray-900">{nextReward.reward_name}</p>
-              <div className="flex items-center space-x-3">
-                <div className="flex-1 bg-gray-200 rounded-full h-3">
-                  <div 
-                    className="bg-yellow-400 h-3 rounded-full" 
-                    style={{ width: `${Math.min((totalStars / nextReward.stars_required) * 100, 100)}%` }}
-                  ></div>
+            <div className="space-y-4">
+              <p className="text-xl font-bold text-gray-900">{nextReward.reward_name}</p>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="font-medium text-gray-700">Progress</span>
+                  <span className="font-semibold text-gray-900">{totalStars} / {nextReward.stars_required} stars</span>
                 </div>
-                <div className="flex items-center space-x-1">
-                  <span className="text-sm font-medium text-gray-900">{totalStars}/{nextReward.stars_required}</span>
-                  <Star className="w-4 h-4 text-yellow-500" />
+                <div className="relative w-full bg-gray-200 rounded-full h-4 overflow-hidden">
+                  <div
+                    className="absolute inset-y-0 left-0 bg-gradient-to-r from-yellow-400 to-yellow-500 rounded-full transition-all duration-500 ease-out"
+                    style={{ width: `${Math.min((totalStars / nextReward.stars_required) * 100, 100)}%` }}
+                  />
                 </div>
               </div>
-              <p className="text-sm text-gray-600">
-                Keep earning stars through your training sessions to reach your reward
+              <p className="text-sm text-gray-700">
+                {nextReward.stars_required - totalStars > 0
+                  ? `${nextReward.stars_required - totalStars} more stars to unlock this reward!`
+                  : 'Reward unlocked! Claim it now.'}
               </p>
             </div>
           </div>
@@ -402,32 +406,32 @@ export default function AthleteDashboard() {
       )}
 
       {/* Quick Actions Card */}
-      <div className="bg-white shadow-lg rounded-lg border border-gray-200">
-        <div className="px-4 py-5 sm:p-6">
-          <h2 className="text-lg leading-6 font-medium text-gray-900 mb-4">Would you like to...</h2>
-          <div className="space-y-4">
+      <div className="bg-white shadow-sm rounded-lg border border-gray-200">
+        <div className="p-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-5">Quick Actions</h2>
+          <div className="space-y-3">
             <Link
               href="/dashboard/athlete/goals"
-              className="flex items-center space-x-3 sm:space-x-4 p-3 sm:p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+              className="flex items-center space-x-4 p-4 border border-gray-200 rounded-lg hover:border-primary-300 hover:bg-primary-50/50 transition-all group"
             >
-              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-red-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                <Target className="w-5 h-5 sm:w-6 sm:h-6 text-red-600" />
+              <div className="w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-primary-200 transition-colors">
+                <Target className="w-6 h-6 text-primary-600" />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="font-medium text-gray-900 text-sm sm:text-base">Set your daily training goals in advance?</p>
-                <p className="text-xs sm:text-sm text-gray-600">Plan your objectives for upcoming sessions</p>
+                <p className="font-semibold text-gray-900 text-base">Set Training Goals</p>
+                <p className="text-sm text-gray-600 mt-0.5">Plan objectives for upcoming sessions</p>
               </div>
             </Link>
             <Link
               href="/dashboard/athlete/progress"
-              className="flex items-center space-x-3 sm:space-x-4 p-3 sm:p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+              className="flex items-center space-x-4 p-4 border border-gray-200 rounded-lg hover:border-green-300 hover:bg-green-50/50 transition-all group"
             >
-              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-red-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6 text-red-600" />
+              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-green-200 transition-colors">
+                <TrendingUp className="w-6 h-6 text-green-600" />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="font-medium text-gray-900 text-sm sm:text-base">View your training journey so far?</p>
-                <p className="text-xs sm:text-sm text-gray-600">Review your progress and achievements</p>
+                <p className="font-semibold text-gray-900 text-base">View Progress</p>
+                <p className="text-sm text-gray-600 mt-0.5">Review your training journey and achievements</p>
               </div>
             </Link>
           </div>

@@ -51,24 +51,24 @@ export default function DashboardStats({
   ]
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
       {stats.map((stat) => {
         const Icon = stat.icon
         return (
           <div
             key={stat.name}
-            className={`${stat.bgColor} ${stat.borderColor} border rounded-lg p-4 transition-all hover:shadow-md`}
+            className={`${stat.bgColor} ${stat.borderColor} border rounded-lg p-5 transition-all hover:shadow-md`}
           >
-            <div className="flex items-center justify-between">
-              <div className="flex-1">
-                <p className="text-sm font-medium text-gray-600">{stat.name}</p>
-                <p className={`text-2xl font-bold ${stat.color} mt-1`}>
-                  {stat.value}
-                </p>
+            <div className="flex flex-col space-y-3">
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide">{stat.name}</p>
+                <div className={`rounded-full p-2`}>
+                  <Icon className={`w-5 h-5 ${stat.color}`} />
+                </div>
               </div>
-              <div className={`${stat.bgColor} rounded-full p-2`}>
-                <Icon className={`w-6 h-6 ${stat.color}`} />
-              </div>
+              <p className={`text-3xl font-bold ${stat.color}`}>
+                {stat.value}
+              </p>
             </div>
           </div>
         )

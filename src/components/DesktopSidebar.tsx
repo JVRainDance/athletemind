@@ -36,8 +36,8 @@ export function DesktopSidebar({ role }: DesktopSidebarProps) {
   const navItems = role === 'athlete' ? athleteNavItems : coachNavItems
 
   return (
-    <aside className="hidden lg:flex lg:flex-col lg:w-64 lg:fixed lg:inset-y-0 lg:border-r lg:border-gray-200 lg:bg-white lg:pt-20">
-      <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
+    <aside className="hidden lg:flex lg:flex-col lg:w-64 lg:fixed lg:inset-y-0 lg:border-r lg:border-gray-200 lg:bg-white lg:pt-16">
+      <nav className="flex-1 px-3 py-6 space-y-1 overflow-y-auto">
         {navItems.map((item) => {
           const Icon = item.icon
           const active = isActive(item.href)
