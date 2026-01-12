@@ -11,6 +11,8 @@ import AbsenceButton from '@/components/AbsenceButton'
 import ExtraSessionButton from '@/components/ExtraSessionButton'
 import SessionCountdown from '@/components/SessionCountdown'
 import SessionButton from '@/components/SessionButton'
+import { DashboardSkeleton } from '@/components/skeletons/dashboard-skeleton'
+import DashboardStats from '@/components/DashboardStats'
 
 interface TrainingSession {
   id: string
@@ -40,6 +42,9 @@ export default function AthleteDashboard() {
   const [userTimezone, setUserTimezone] = useState('UTC')
   const [loading, setLoading] = useState(true)
   const [checkinCountdown, setCheckinCountdown] = useState<string>('')
+  const [currentStreak, setCurrentStreak] = useState(0)
+  const [completionRate, setCompletionRate] = useState(0)
+  const [totalSessions, setTotalSessions] = useState(0)
   const router = useRouter()
   const supabase = createClient()
 
@@ -106,7 +111,7 @@ export default function AthleteDashboard() {
       const today = now.toISOString().split('T')[0]
 
       // OPTIMIZED: Parallel queries instead of sequential
-      const [profileResult, nextSessionResult, rewardsResult, starsResult] = await Promise.all([
+      const [profileResult, nextSessionResult, rewardsResult, starsResult, sessionsResult] = await Promise.all([
         // Query 1: Profile data (only needed fields)
         supabase
           .from('profiles')
@@ -138,7 +143,14 @@ export default function AthleteDashboard() {
         supabase
           .from('user_stars')
           .select('stars_earned')
-          .eq('user_id', authSession.user.id)
+          .eq('user_id', authSession.user.id),
+
+        // Query 5: All sessions for stats calculation
+        supabase
+          .from('training_sessions')
+          .select('id, scheduled_date, status')
+          .eq('athlete_id', authSession.user.id)
+          .order('scheduled_date', { ascending: false })
       ])
 
       // Handle profile
@@ -203,6 +215,53 @@ export default function AthleteDashboard() {
         const nextRewardData = rewards.find(reward => reward.stars_required > totalStarsEarned) || rewards[0]
         setNextReward(nextRewardData)
       }
+
+      // Calculate stats from sessions
+      const { data: sessions } = sessionsResult
+      if (sessions && sessions.length > 0) {
+        // Total sessions
+        setTotalSessions(sessions.length)
+
+        // Completion rate (completed sessions / total past sessions)
+        const pastSessions = sessions.filter(s => new Date(s.scheduled_date) < now)
+        const completedSessions = pastSessions.filter(s => s.status === 'completed')
+        const rate = pastSessions.length > 0 ? Math.round((completedSessions.length / pastSessions.length) * 100) : 0
+        setCompletionRate(rate)
+
+        // Current streak (consecutive days with completed sessions)
+        let streak = 0
+        const sortedSessions = [...sessions].sort((a, b) =>
+          new Date(b.scheduled_date).getTime() - new Date(a.scheduled_date).getTime()
+        )
+
+        const completedDates = sortedSessions
+          .filter(s => s.status === 'completed')
+          .map(s => s.scheduled_date)
+
+        if (completedDates.length > 0) {
+          const mostRecentDate = new Date(completedDates[0])
+          const todayDate = new Date(today)
+          const daysDiff = Math.floor((todayDate.getTime() - mostRecentDate.getTime()) / (1000 * 60 * 60 * 24))
+
+          // Only count streak if most recent completion was today or yesterday
+          if (daysDiff <= 1) {
+            let currentDate = new Date(completedDates[0])
+            for (let i = 0; i < completedDates.length; i++) {
+              const sessionDate = new Date(completedDates[i])
+              const diff = Math.floor((currentDate.getTime() - sessionDate.getTime()) / (1000 * 60 * 60 * 24))
+
+              if (diff <= 1) {
+                streak++
+                currentDate = sessionDate
+              } else {
+                break
+              }
+            }
+          }
+        }
+
+        setCurrentStreak(streak)
+      }
     } catch (error) {
       console.error('Error fetching dashboard data:', error)
     } finally {
@@ -211,11 +270,7 @@ export default function AthleteDashboard() {
   }
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-lg text-gray-600">Loading...</div>
-      </div>
-    )
+    return <DashboardSkeleton />
   }
 
   return (
@@ -225,6 +280,14 @@ export default function AthleteDashboard() {
           Ready to show up, reflect, and build momentum.
         </p>
       </div>
+
+      {/* Dashboard Stats */}
+      <DashboardStats
+        totalStars={totalStars}
+        currentStreak={currentStreak}
+        completionRate={completionRate}
+        totalSessions={totalSessions}
+      />
 
       {/* Next Training Session Card */}
       <div className="bg-white shadow-lg rounded-lg border border-gray-200">
@@ -270,7 +333,20 @@ export default function AthleteDashboard() {
               />
             </div>
           ) : (
-            <p className="text-gray-500">No upcoming training sessions scheduled</p>
+            <div className="text-center py-8">
+              <Calendar className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No Upcoming Sessions</h3>
+              <p className="text-gray-500 mb-6 max-w-sm mx-auto">
+                You don't have any training sessions scheduled yet. Create your first training schedule to get started.
+              </p>
+              <Link
+                href="/dashboard/athlete/schedule"
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 transition-colors"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Create Schedule
+              </Link>
+            </div>
           )}
         </div>
       </div>
@@ -289,14 +365,6 @@ export default function AthleteDashboard() {
               <BarChart3 className="w-4 h-4 mr-2" />
               View Progress
             </Link>
-          </div>
-          <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-2">
-            <span className="text-sm text-gray-600">Theme:</span>
-            <select className="border border-gray-300 rounded-md px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
-              <option>Zelda</option>
-              <option>Mario</option>
-              <option>Pokemon</option>
-            </select>
           </div>
         </div>
       </div>

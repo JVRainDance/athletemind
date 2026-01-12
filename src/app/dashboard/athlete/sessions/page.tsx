@@ -8,6 +8,9 @@ import { Calendar, Clock, Play, CheckCircle, XCircle, AlertCircle } from 'lucide
 import { formatDate } from '@/lib/utils'
 import { formatTimeInTimezone } from '@/lib/timezone-utils'
 import BackButton from '@/components/BackButton'
+import { SessionCardSkeleton } from '@/components/skeletons/session-card-skeleton'
+import { toast } from '@/lib/toast'
+import { useConfirmDialog } from '@/components/ConfirmDialog'
 
 interface TrainingSession {
   id: string
@@ -36,6 +39,7 @@ export default function SessionsPage() {
   const [showAbsenceForm, setShowAbsenceForm] = useState<string | null>(null)
   const [absenceReason, setAbsenceReason] = useState('')
   const router = useRouter()
+  const { confirm } = useConfirmDialog()
 
   useEffect(() => {
     fetchSessions()
@@ -100,19 +104,19 @@ export default function SessionsPage() {
 
       if (error) {
         console.error('Error starting session:', error)
-        alert('Error starting session. Please try again.')
+        toast.error('Error starting session. Please try again.')
       } else {
         router.push(`/dashboard/athlete/sessions/${sessionId}/training`)
       }
     } catch (error) {
       console.error('Error:', error)
-      alert('An unexpected error occurred.')
+      toast.error('An unexpected error occurred.')
     }
   }
 
   const handleMarkAbsent = async (sessionId: string) => {
     if (!absenceReason) {
-      alert('Please select a reason for absence.')
+      toast.error('Please select a reason for absence.')
       return
     }
 
@@ -128,20 +132,28 @@ export default function SessionsPage() {
 
       if (error) {
         console.error('Error marking absent:', error)
-        alert('Error marking absent. Please try again.')
+        toast.error('Error marking absent. Please try again.')
       } else {
         setShowAbsenceForm(null)
         setAbsenceReason('')
+        toast.success('Session marked as absent.')
         fetchSessions()
       }
     } catch (error) {
       console.error('Error:', error)
-      alert('An unexpected error occurred.')
+      toast.error('An unexpected error occurred.')
     }
   }
 
   const handleCancelSession = async (sessionId: string) => {
-    if (!confirm('Are you sure you want to cancel this session?')) {
+    const confirmed = await confirm({
+      title: 'Cancel Session',
+      description: 'Are you sure you want to cancel this training session?',
+      confirmText: 'Cancel Session',
+      cancelText: 'Keep Session',
+      variant: 'danger'
+    })
+    if (!confirmed) {
       return
     }
 
@@ -154,13 +166,14 @@ export default function SessionsPage() {
 
       if (error) {
         console.error('Error cancelling session:', error)
-        alert('Error cancelling session. Please try again.')
+        toast.error('Error cancelling session. Please try again.')
       } else {
+        toast.success('Session cancelled successfully.')
         fetchSessions()
       }
     } catch (error) {
       console.error('Error:', error)
-      alert('An unexpected error occurred.')
+      toast.error('An unexpected error occurred.')
     }
   }
 
@@ -204,8 +217,10 @@ export default function SessionsPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-lg text-gray-600">Loading...</div>
+      <div className="space-y-4">
+        <SessionCardSkeleton />
+        <SessionCardSkeleton />
+        <SessionCardSkeleton />
       </div>
     )
   }
@@ -346,12 +361,19 @@ export default function SessionsPage() {
               ))}
             </div>
           ) : (
-            <div className="text-center py-6">
-              <Calendar className="mx-auto h-12 w-12 text-gray-400" />
-              <h3 className="mt-2 text-sm font-medium text-gray-900">No sessions yet</h3>
-              <p className="mt-1 text-sm text-gray-500">
-                Set up your training schedule to generate sessions.
+            <div className="text-center py-8">
+              <Calendar className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No Sessions Yet</h3>
+              <p className="text-gray-500 mb-6 max-w-sm mx-auto">
+                Set up your training schedule to automatically generate sessions.
               </p>
+              <Link
+                href="/dashboard/athlete/schedule"
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 transition-colors"
+              >
+                <Calendar className="w-4 h-4 mr-2" />
+                Set Up Schedule
+              </Link>
             </div>
           )}
         </div>

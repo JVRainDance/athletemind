@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase-client'
 import { Database } from '@/types/database'
 import { CheckCircle, Target, Star, ArrowRight, Trophy } from 'lucide-react'
 import BackButton from '@/components/BackButton'
+import { toast } from '@/lib/toast'
 
 type Session = Database['public']['Tables']['training_sessions']['Row']
 type Goal = Database['public']['Tables']['session_goals']['Row']
@@ -100,12 +101,12 @@ export default function ReflectionPage({ params }: PageProps) {
 
     // Validate required fields
     if (!whatWentWell.trim() || !whatDidntGoWell.trim() || !whatToDoDifferent.trim() || !mostProudOf.trim()) {
-      alert('Please fill in all reflection questions.')
+      toast.error('Please fill in all reflection questions.')
       return
     }
 
     if (overallRating === 0) {
-      alert('Please rate your overall training session.')
+      toast.error('Please rate your overall training session.')
       return
     }
 
@@ -137,7 +138,7 @@ export default function ReflectionPage({ params }: PageProps) {
 
       if (reflectionError) {
         console.error('Error saving reflection:', reflectionError)
-        alert('Error saving reflection. Please try again.')
+        toast.error('Error saving reflection. Please try again.')
         return
       }
 
@@ -183,7 +184,7 @@ export default function ReflectionPage({ params }: PageProps) {
 
     } catch (error) {
       console.error('Error submitting reflection:', error)
-      alert('Error submitting reflection. Please try again.')
+      toast.error('Error submitting reflection. Please try again.')
     } finally {
       setSubmitting(false)
     }

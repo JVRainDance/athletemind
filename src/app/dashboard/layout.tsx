@@ -2,6 +2,9 @@ import { createClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
 import { getFullName } from '@/lib/utils'
 import ProfileDropdown from '@/components/ProfileDropdown'
+import { BottomNav } from '@/components/MobileNav'
+import { DesktopSidebar } from '@/components/DesktopSidebar'
+import { Breadcrumbs } from '@/components/Breadcrumbs'
 import Link from 'next/link'
 
 export default async function DashboardLayout({
@@ -34,7 +37,7 @@ export default async function DashboardLayout({
 
   return (
     <div className="min-h-screen bg-gray-100">
-      <nav className="bg-white shadow-md border-b border-gray-200">
+      <nav className="bg-white shadow-md border-b border-gray-200 fixed top-0 left-0 right-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex items-center">
@@ -55,9 +58,14 @@ export default async function DashboardLayout({
           </div>
         </div>
       </nav>
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        {children}
+      <DesktopSidebar role={profile.role as 'athlete' | 'coach'} />
+      <main className="pt-16 lg:pl-64">
+        <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8 pb-20 lg:pb-6">
+          <Breadcrumbs />
+          {children}
+        </div>
       </main>
+      <BottomNav />
     </div>
   )
 }

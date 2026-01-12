@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase-client'
 import { Database } from '@/types/database'
 import { CheckCircle, Clock, Target, Star, ArrowRight } from 'lucide-react'
 import BackButton from '@/components/BackButton'
+import { toast } from '@/lib/toast'
 
 type Session = Database['public']['Tables']['training_sessions']['Row']
 type Goal = Database['public']['Tables']['session_goals']['Row']
@@ -205,12 +206,12 @@ export default function PreTrainingCheckinPage({ params }: PageProps) {
     // Validate minimum requirements
     const validGoals = formGoals.filter(goal => goal.trim() !== '')
     if (validGoals.length === 0) {
-      alert('Please set at least one goal before starting training.')
+      toast.error('Please set at least one goal before starting training.')
       return
     }
 
     if (energyLevel === 0 || mindsetLevel === 0) {
-      alert('Please rate your energy and mindset levels.')
+      toast.error('Please rate your energy and mindset levels.')
       return
     }
 
@@ -255,7 +256,7 @@ export default function PreTrainingCheckinPage({ params }: PageProps) {
 
       if (checkinError) {
         console.error('Error saving check-in:', checkinError)
-        alert('Error saving check-in. Please try again.')
+        toast.error('Error saving check-in. Please try again.')
         return
       }
 
@@ -267,7 +268,7 @@ export default function PreTrainingCheckinPage({ params }: PageProps) {
 
     } catch (error) {
       console.error('Error submitting check-in:', error)
-      alert('Error submitting check-in. Please try again.')
+      toast.error('Error submitting check-in. Please try again.')
     } finally {
       setSubmitting(false)
     }

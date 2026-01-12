@@ -7,6 +7,7 @@ import { Database } from '@/types/database'
 import { Users, Plus, Search, UserPlus, X } from 'lucide-react'
 import { getFullName } from '@/lib/utils'
 import BackButton from '@/components/BackButton'
+import { toast } from '@/lib/toast'
 
 type Profile = Database['public']['Tables']['profiles']['Row']
 type CoachAthlete = Database['public']['Tables']['coach_athletes']['Row']
@@ -87,7 +88,7 @@ export default function CoachAthletesPage() {
 
       if (error) {
         console.error('Error assigning athlete:', error)
-        alert('Error assigning athlete. They may already be assigned to you.')
+        toast.error('Error assigning athlete. They may already be assigned to you.')
         return
       }
 

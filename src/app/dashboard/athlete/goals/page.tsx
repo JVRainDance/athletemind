@@ -6,6 +6,9 @@ import { createClient } from '@/lib/supabase-client'
 import { formatDate } from '@/lib/utils'
 import { Plus, Target, Calendar, Clock } from 'lucide-react'
 import BackButton from '@/components/BackButton'
+import { TableSkeleton } from '@/components/skeletons/table-skeleton'
+import { toast } from '@/lib/toast'
+import { useConfirmDialog } from '@/components/ConfirmDialog'
 
 interface UpcomingSession {
   id: string
@@ -24,7 +27,10 @@ export default function GoalsPage() {
   const [loading, setLoading] = useState(true)
   const [showAddGoal, setShowAddGoal] = useState<string | null>(null)
   const [newGoal, setNewGoal] = useState('')
+  const [submitting, setSubmitting] = useState(false)
+  const [deletingGoalId, setDeletingGoalId] = useState<string | null>(null)
   const router = useRouter()
+  const { confirm } = useConfirmDialog()
 
   const fetchUpcomingSessions = useCallback(async () => {
     try {
@@ -85,10 +91,11 @@ export default function GoalsPage() {
 
   const handleAddGoal = async (sessionId: string) => {
     if (!newGoal.trim()) {
-      alert('Please enter a goal.')
+      toast.error('Please enter a goal.')
       return
     }
 
+    setSubmitting(true)
     try {
       const supabase = createClient()
       const { error } = await supabase
@@ -100,23 +107,34 @@ export default function GoalsPage() {
 
       if (error) {
         console.error('Error adding goal:', error)
-        alert('Error adding goal. Please try again.')
+        toast.error('Error adding goal. Please try again.')
       } else {
         setNewGoal('')
         setShowAddGoal(null)
+        toast.success('Goal added successfully!')
         fetchUpcomingSessions()
       }
     } catch (error) {
       console.error('Error:', error)
-      alert('An unexpected error occurred.')
+      toast.error('An unexpected error occurred.')
+    } finally {
+      setSubmitting(false)
     }
   }
 
   const handleDeleteGoal = async (goalId: string) => {
-    if (!confirm('Are you sure you want to delete this goal?')) {
+    const confirmed = await confirm({
+      title: 'Delete Goal',
+      description: 'Are you sure you want to delete this goal? This action cannot be undone.',
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      variant: 'danger'
+    })
+    if (!confirmed) {
       return
     }
 
+    setDeletingGoalId(goalId)
     try {
       const supabase = createClient()
       const { error } = await supabase
@@ -126,22 +144,21 @@ export default function GoalsPage() {
 
       if (error) {
         console.error('Error deleting goal:', error)
-        alert('Error deleting goal. Please try again.')
+        toast.error('Error deleting goal. Please try again.')
       } else {
+        toast.success('Goal deleted successfully.')
         fetchUpcomingSessions()
       }
     } catch (error) {
       console.error('Error:', error)
-      alert('An unexpected error occurred.')
+      toast.error('An unexpected error occurred.')
+    } finally {
+      setDeletingGoalId(null)
     }
   }
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-lg text-gray-600">Loading...</div>
-      </div>
-    )
+    return <TableSkeleton rows={5} />
   }
 
   return (
@@ -228,9 +245,10 @@ export default function GoalsPage() {
                         </button>
                         <button
                           onClick={() => handleAddGoal(session.id)}
-                          className="px-3 py-1 text-sm text-white bg-primary-600 hover:bg-primary-700 rounded"
+                          disabled={submitting}
+                          className="px-3 py-1 text-sm text-white bg-primary-600 hover:bg-primary-700 rounded disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                          Add Goal
+                          {submitting ? 'Adding...' : 'Add Goal'}
                         </button>
                       </div>
                     </div>
@@ -250,9 +268,10 @@ export default function GoalsPage() {
                         <p className="flex-1 text-sm text-gray-700">{goal.goal_text}</p>
                         <button
                           onClick={() => handleDeleteGoal(goal.id)}
-                          className="text-red-600 hover:text-red-900 text-sm"
+                          disabled={deletingGoalId === goal.id}
+                          className="text-red-600 hover:text-red-900 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                          Delete
+                          {deletingGoalId === goal.id ? 'Deleting...' : 'Delete'}
                         </button>
                       </div>
                     ))}
