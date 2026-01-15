@@ -1,7 +1,10 @@
 import { createClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
+import Link from 'next/link'
 import { Users, Calendar, TrendingUp, CheckCircle, UserPlus, Bell } from 'lucide-react'
 import { getFullName } from '@/lib/utils'
+import { buttonVariants } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 
 export default async function CoachDashboard() {
   const supabase = createClient()
@@ -85,13 +88,13 @@ export default async function CoachDashboard() {
             Monitor your athletes&apos; progress and training sessions
           </p>
         </div>
-        <a
+        <Link
           href="/dashboard/coach/athletes"
-          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+          className={cn(buttonVariants({ variant: 'default', size: 'default' }), 'gap-2')}
         >
-          <UserPlus className="h-4 w-4 mr-2" />
+          <UserPlus className="h-4 w-4" />
           Manage Athletes
-        </a>
+        </Link>
       </div>
 
       {/* Pending Connection Requests Alert */}

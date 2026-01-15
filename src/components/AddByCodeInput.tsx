@@ -1,10 +1,11 @@
 'use client'
 
 import { useState } from 'react'
-import { UserPlus, Loader2, Search, X } from 'lucide-react'
+import { UserPlus, Search, X } from 'lucide-react'
 import { toast } from '@/lib/toast'
 import { getFullName } from '@/lib/utils'
 import { validateUserCodeFormat, getUserCodePrefix } from '@/types/connections'
+import { Button, IconButton } from '@/components/ui/button'
 
 interface AddByCodeInputProps {
   expectedRole: 'athlete' | 'coach'
@@ -125,21 +126,18 @@ export function AddByCodeInput({
           onChange={(e) => setCode(e.target.value.toUpperCase())}
           onKeyPress={handleKeyPress}
           placeholder={defaultPlaceholder}
-          className="flex-1 px-4 py-2 border border-gray-300 rounded-lg font-mono uppercase tracking-wider focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+          className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg font-mono uppercase tracking-wider focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
           maxLength={8}
         />
-        <button
+        <Button
           onClick={handleLookup}
-          disabled={loading || !code.trim()}
-          className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+          disabled={!code.trim()}
+          loading={loading}
+          size="sm"
+          leftIcon={<Search className="h-4 w-4" />}
         >
-          {loading ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <Search className="h-4 w-4" />
-          )}
           <span className="hidden sm:inline">Search</span>
-        </button>
+        </Button>
       </div>
 
       {/* Confirmation Dialog */}
@@ -151,12 +149,13 @@ export function AddByCodeInput({
                 <h3 className="text-lg font-semibold text-gray-900">
                   Send Connection Request
                 </h3>
-                <button
+                <IconButton
+                  icon={<X className="h-5 w-5" />}
+                  label="Close dialog"
+                  variant="ghost"
+                  size="sm"
                   onClick={handleCancel}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  <X className="h-5 w-5" />
-                </button>
+                />
               </div>
 
               <p className="text-gray-600 mb-4">
@@ -176,24 +175,21 @@ export function AddByCodeInput({
               </div>
 
               <div className="flex gap-3">
-                <button
+                <Button
+                  variant="outline"
                   onClick={handleCancel}
-                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                  fullWidth
                 >
                   Cancel
-                </button>
-                <button
+                </Button>
+                <Button
                   onClick={handleSendRequest}
-                  disabled={sending}
-                  className="flex-1 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
+                  loading={sending}
+                  leftIcon={<UserPlus className="h-4 w-4" />}
+                  fullWidth
                 >
-                  {sending ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <UserPlus className="h-4 w-4" />
-                  )}
                   Send Request
-                </button>
+                </Button>
               </div>
             </div>
           </div>

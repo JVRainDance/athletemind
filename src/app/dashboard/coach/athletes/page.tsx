@@ -9,6 +9,7 @@ import { getFullName } from '@/lib/utils'
 import UserCodeDisplay from '@/components/UserCodeDisplay'
 import AddByCodeInput from '@/components/AddByCodeInput'
 import PendingConnectionRequests from '@/components/PendingConnectionRequests'
+import { Button } from '@/components/ui/button'
 
 type Profile = Database['public']['Tables']['profiles']['Row']
 
@@ -184,19 +185,24 @@ export default function CoachAthletesPage() {
                       <p className="text-sm text-gray-500">{athlete.email}</p>
                     </div>
                     <div className="flex space-x-2">
-                      <button
+                      <Button
+                        size="sm"
+                        variant="link"
                         onClick={() => router.push(`/dashboard/coach/athletes/${athlete.id}`)}
-                        className="text-primary-600 hover:text-primary-900 text-sm"
                       >
                         View Details
-                      </button>
-                      <button
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="link"
                         onClick={() => removeAthlete(athlete.id)}
                         disabled={removing === athlete.id}
-                        className="text-red-600 hover:text-red-900 text-sm disabled:opacity-50"
+                        loading={removing === athlete.id}
+                        loadingText="Removing..."
+                        className="text-red-600 hover:text-red-700"
                       >
-                        {removing === athlete.id ? 'Removing...' : 'Remove'}
-                      </button>
+                        Remove
+                      </Button>
                     </div>
                   </div>
                 </div>

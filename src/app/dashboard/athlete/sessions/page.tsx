@@ -2,15 +2,14 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import Link from 'next/link'
 import { createClient } from '@/lib/supabase-client'
 import { Calendar, Clock, Play, CheckCircle, XCircle, AlertCircle } from 'lucide-react'
 import { formatDate } from '@/lib/utils'
 import { formatTimeInTimezone } from '@/lib/timezone-utils'
-import BackButton from '@/components/BackButton'
 import { SessionCardSkeleton } from '@/components/skeletons/session-card-skeleton'
 import { toast } from '@/lib/toast'
 import { useConfirmDialog } from '@/components/ConfirmDialog'
+import { Button } from '@/components/ui/button'
 
 interface TrainingSession {
   id: string
@@ -276,40 +275,44 @@ export default function SessionsPage() {
                       {/* Action Buttons */}
                       <div className="flex items-center space-x-2">
                         {session.status === 'scheduled' && canStartSession(session) && (
-                          <button
+                          <Button
+                            size="sm"
                             onClick={() => handleStartSession(session.id)}
-                            className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded text-white bg-primary-600 hover:bg-primary-700"
+                            leftIcon={<Play className="h-3 w-3" />}
                           >
-                            <Play className="h-3 w-3 mr-1" />
                             Start
-                          </button>
+                          </Button>
                         )}
-                        
+
                         {session.status === 'scheduled' && (
                           <>
-                            <button
+                            <Button
+                              size="sm"
+                              variant="outline"
                               onClick={() => setShowAbsenceForm(session.id)}
-                              className="inline-flex items-center px-3 py-1 border border-red-300 text-xs font-medium rounded text-red-700 bg-red-50 hover:bg-red-100"
+                              leftIcon={<AlertCircle className="h-3 w-3" />}
+                              className="border-red-300 text-red-700 bg-red-50 hover:bg-red-100"
                             >
-                              <AlertCircle className="h-3 w-3 mr-1" />
                               Absent
-                            </button>
-                            <button
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
                               onClick={() => handleCancelSession(session.id)}
-                              className="inline-flex items-center px-3 py-1 border border-gray-300 text-xs font-medium rounded text-gray-700 bg-gray-50 hover:bg-gray-100"
                             >
                               Cancel
-                            </button>
+                            </Button>
                           </>
                         )}
-                        
+
                         {session.status === 'completed' && (
-                          <Link
-                            href={`/dashboard/athlete/sessions/${session.id}`}
-                            className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded text-white bg-secondary-600 hover:bg-secondary-700"
+                          <Button
+                            size="sm"
+                            variant="secondary"
+                            onClick={() => router.push(`/dashboard/athlete/sessions/${session.id}`)}
                           >
                             View Details
-                          </Link>
+                          </Button>
                         )}
                       </div>
                     </div>
@@ -335,21 +338,23 @@ export default function SessionsPage() {
                           ))}
                         </select>
                         <div className="flex justify-end space-x-2">
-                          <button
+                          <Button
+                            size="sm"
+                            variant="ghost"
                             onClick={() => {
                               setShowAbsenceForm(null)
                               setAbsenceReason('')
                             }}
-                            className="px-3 py-1 text-sm text-gray-600 hover:text-gray-800"
                           >
                             Cancel
-                          </button>
-                          <button
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="destructive"
                             onClick={() => handleMarkAbsent(session.id)}
-                            className="px-3 py-1 text-sm text-white bg-red-600 hover:bg-red-700 rounded"
                           >
                             Mark Absent
-                          </button>
+                          </Button>
                         </div>
                       </div>
                     </div>
@@ -364,13 +369,12 @@ export default function SessionsPage() {
               <p className="text-gray-500 mb-6 max-w-sm mx-auto">
                 Set up your training schedule to automatically generate sessions.
               </p>
-              <Link
-                href="/dashboard/athlete/schedule"
-                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 transition-colors"
+              <Button
+                onClick={() => router.push('/dashboard/athlete/schedule')}
+                leftIcon={<Calendar className="w-4 h-4" />}
               >
-                <Calendar className="w-4 h-4 mr-2" />
                 Set Up Schedule
-              </Link>
+              </Button>
             </div>
           )}
         </div>

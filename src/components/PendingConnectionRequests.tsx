@@ -2,10 +2,11 @@
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase-client'
-import { Check, X, Clock, Loader2 } from 'lucide-react'
+import { Check, X, Clock } from 'lucide-react'
 import { toast } from '@/lib/toast'
 import { getFullName } from '@/lib/utils'
 import { ConnectionRequest } from '@/types/connections'
+import { IconButton } from '@/components/ui/button'
 
 interface PendingConnectionRequestsProps {
   userRole: 'coach' | 'athlete'
@@ -122,30 +123,24 @@ export function PendingConnectionRequests({
               </div>
 
               <div className="flex gap-2 ml-4">
-                <button
+                <IconButton
+                  icon={<X className="h-4 w-4" />}
+                  label="Decline request"
+                  variant="outline"
+                  size="sm"
                   onClick={() => handleRespond(request.id, 'reject')}
                   disabled={responding === request.id}
-                  className="p-2 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-100 disabled:opacity-50 transition-colors"
-                  title="Decline"
-                >
-                  {responding === request.id ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <X className="h-4 w-4" />
-                  )}
-                </button>
-                <button
+                  loading={responding === request.id}
+                />
+                <IconButton
+                  icon={<Check className="h-4 w-4" />}
+                  label="Accept request"
+                  variant="success"
+                  size="sm"
                   onClick={() => handleRespond(request.id, 'approve')}
                   disabled={responding === request.id}
-                  className="p-2 rounded-lg bg-green-600 text-white hover:bg-green-700 disabled:opacity-50 transition-colors"
-                  title="Accept"
-                >
-                  {responding === request.id ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Check className="h-4 w-4" />
-                  )}
-                </button>
+                  loading={responding === request.id}
+                />
               </div>
             </div>
           )

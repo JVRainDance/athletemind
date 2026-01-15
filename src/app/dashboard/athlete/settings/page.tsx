@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase-client'
-import { Settings, User, Bell, Shield, Palette, Gift, UserPlus, Users } from 'lucide-react'
+import { Settings, User, Bell, Shield, Palette, Gift, UserPlus, Users, Key, Download, Trash2 } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import BackButton from '@/components/BackButton'
 import RewardManager from '@/components/RewardManager'
 import TimezoneSettings from '@/components/TimezoneSettings'
@@ -306,24 +307,39 @@ export default function SettingsPage() {
         </div>
 
         {/* Privacy & Security */}
-        <div className="bg-white shadow rounded-lg">
-          <div className="px-4 py-5 sm:p-6">
+        <div className="bg-white shadow-sm rounded-lg border border-gray-200">
+          <div className="p-6">
             <div className="flex items-center mb-4">
               <Shield className="h-5 w-5 text-gray-400 mr-2" />
               <h3 className="text-lg leading-6 font-medium text-gray-900">
                 Privacy & Security
               </h3>
             </div>
-            <div className="space-y-4">
-              <button className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-md">
+            <div className="space-y-3">
+              <Button
+                variant="ghost"
+                fullWidth
+                leftIcon={<Key className="h-4 w-4" />}
+                className="justify-start"
+              >
                 Change Password
-              </button>
-              <button className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-md">
+              </Button>
+              <Button
+                variant="ghost"
+                fullWidth
+                leftIcon={<Download className="h-4 w-4" />}
+                className="justify-start"
+              >
                 Download Data
-              </button>
-              <button className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded-md">
+              </Button>
+              <Button
+                variant="ghost"
+                fullWidth
+                leftIcon={<Trash2 className="h-4 w-4" />}
+                className="justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
+              >
                 Delete Account
-              </button>
+              </Button>
             </div>
           </div>
         </div>

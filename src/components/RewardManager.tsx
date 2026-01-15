@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase-client'
 import { Gift, Plus, Trash2, Edit, Star } from 'lucide-react'
+import { Button, IconButton } from '@/components/ui/button'
 
 interface Reward {
   id: string
@@ -143,13 +144,13 @@ export default function RewardManager() {
             Rewards & Motivation
           </h3>
         </div>
-        <button
+        <Button
           onClick={() => setShowForm(true)}
-          className="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+          size="sm"
+          leftIcon={<Plus className="w-4 h-4" />}
         >
-          <Plus className="w-4 h-4 mr-2" />
           Add Reward
-        </button>
+        </Button>
       </div>
 
       {showForm && (
@@ -201,19 +202,20 @@ export default function RewardManager() {
               </p>
             </div>
             <div className="flex justify-end space-x-3">
-              <button
+              <Button
                 type="button"
+                variant="outline"
+                size="sm"
                 onClick={handleCancel}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
               >
                 Cancel
-              </button>
-              <button
+              </Button>
+              <Button
                 type="submit"
-                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700"
+                size="sm"
               >
                 {editingReward ? 'Update Reward' : 'Add Reward'}
-              </button>
+              </Button>
             </div>
           </form>
         </div>
@@ -253,18 +255,21 @@ export default function RewardManager() {
                 </div>
               </div>
               <div className="flex items-center space-x-2">
-                <button
+                <IconButton
+                  icon={<Edit className="w-4 h-4" />}
+                  label="Edit reward"
+                  variant="ghost"
+                  size="sm"
                   onClick={() => handleEdit(reward)}
-                  className="text-blue-600 hover:text-blue-500"
-                >
-                  <Edit className="w-4 h-4" />
-                </button>
-                <button
+                />
+                <IconButton
+                  icon={<Trash2 className="w-4 h-4" />}
+                  label="Delete reward"
+                  variant="ghost"
+                  size="sm"
                   onClick={() => handleDelete(reward.id)}
-                  className="text-red-600 hover:text-red-500"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
+                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                />
               </div>
             </div>
           ))}
