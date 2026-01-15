@@ -1,11 +1,11 @@
 import { createClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
-import { Users, Calendar, TrendingUp, CheckCircle, UserPlus } from 'lucide-react'
+import { Users, Calendar, TrendingUp, CheckCircle, UserPlus, Bell } from 'lucide-react'
 import { getFullName } from '@/lib/utils'
 
 export default async function CoachDashboard() {
   const supabase = createClient()
-  
+
   const {
     data: { session },
   } = await supabase.auth.getSession()
@@ -16,7 +16,7 @@ export default async function CoachDashboard() {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('role, first_name, last_name')
+    .select('role, first_name, last_name, user_code')
     .eq('id', session.user.id)
     .single()
 
@@ -24,12 +24,20 @@ export default async function CoachDashboard() {
     redirect('/auth/login')
   }
 
-  // Get coach's athletes through the relationship table - simplified query
+  // Get pending connection requests count
+  const { count: pendingRequestsCount } = await supabase
+    .from('coach_athletes')
+    .select('id', { count: 'exact', head: true })
+    .eq('coach_id', session.user.id)
+    .eq('status', 'pending')
+    .neq('initiated_by', session.user.id)
+
+  // Get coach's athletes through the relationship table - use status field
   const { data: coachAthletes, error: coachAthletesError } = await supabase
     .from('coach_athletes')
     .select('athlete_id')
     .eq('coach_id', session.user.id)
-    .eq('is_active', true)
+    .eq('status', 'active')
 
   const assignedIds = coachAthletes?.map(ca => ca.athlete_id) || []
   
@@ -85,6 +93,45 @@ export default async function CoachDashboard() {
           Manage Athletes
         </a>
       </div>
+
+      {/* Pending Connection Requests Alert */}
+      {pendingRequestsCount && pendingRequestsCount > 0 && (
+        <a
+          href="/dashboard/coach/athletes"
+          className="block bg-yellow-50 border border-yellow-200 rounded-lg p-4 hover:bg-yellow-100 transition-colors"
+        >
+          <div className="flex items-center gap-3">
+            <div className="bg-yellow-400 rounded-full p-2">
+              <Bell className="h-5 w-5 text-yellow-900" />
+            </div>
+            <div className="flex-1">
+              <p className="font-medium text-yellow-900">
+                {pendingRequestsCount} pending connection request{pendingRequestsCount > 1 ? 's' : ''}
+              </p>
+              <p className="text-sm text-yellow-700">
+                Click here to review and respond to athlete requests
+              </p>
+            </div>
+          </div>
+        </a>
+      )}
+
+      {/* Coach Code Quick Info */}
+      {profile.user_code && (
+        <div className="bg-primary-50 border border-primary-200 rounded-lg p-4">
+          <div className="flex items-center justify-between flex-wrap gap-4">
+            <div>
+              <p className="text-sm text-primary-700 mb-1">Your Coach Code</p>
+              <code className="text-lg font-mono font-bold text-primary-900 bg-white px-3 py-1 rounded border border-primary-200">
+                {profile.user_code}
+              </code>
+            </div>
+            <p className="text-sm text-primary-600">
+              Share this code with athletes so they can connect with you
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">

@@ -81,7 +81,11 @@ export type Database = {
           coach_id: string
           created_at: string | null
           id: string
+          initiated_by: string | null
           is_active: boolean | null
+          request_message: string | null
+          responded_at: string | null
+          status: Database["public"]["Enums"]["connection_status"] | null
           updated_at: string | null
         }
         Insert: {
@@ -90,7 +94,11 @@ export type Database = {
           coach_id: string
           created_at?: string | null
           id?: string
+          initiated_by?: string | null
           is_active?: boolean | null
+          request_message?: string | null
+          responded_at?: string | null
+          status?: Database["public"]["Enums"]["connection_status"] | null
           updated_at?: string | null
         }
         Update: {
@@ -99,7 +107,11 @@ export type Database = {
           coach_id?: string
           created_at?: string | null
           id?: string
+          initiated_by?: string | null
           is_active?: boolean | null
+          request_message?: string | null
+          responded_at?: string | null
+          status?: Database["public"]["Enums"]["connection_status"] | null
           updated_at?: string | null
         }
         Relationships: [
@@ -172,6 +184,7 @@ export type Database = {
           timezone: string | null
           timezone_auto_detected: boolean | null
           updated_at: string | null
+          user_code: string
         }
         Insert: {
           created_at?: string | null
@@ -184,6 +197,7 @@ export type Database = {
           timezone?: string | null
           timezone_auto_detected?: boolean | null
           updated_at?: string | null
+          user_code?: string
         }
         Update: {
           created_at?: string | null
@@ -196,6 +210,7 @@ export type Database = {
           timezone?: string | null
           timezone_auto_detected?: boolean | null
           updated_at?: string | null
+          user_code?: string
         }
         Relationships: []
       }
@@ -617,6 +632,7 @@ export type Database = {
       generate_sessions_from_schedules: { Args: never; Returns: undefined }
     }
     Enums: {
+      connection_status: "pending" | "active" | "rejected" | "inactive"
       session_status:
         | "scheduled"
         | "in_progress"
@@ -755,6 +771,7 @@ export const Constants = {
   },
   public: {
     Enums: {
+      connection_status: ["pending", "active", "rejected", "inactive"],
       session_status: [
         "scheduled",
         "in_progress",

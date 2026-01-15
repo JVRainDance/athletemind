@@ -8,6 +8,9 @@ import { Users, Plus, Search, UserPlus, X } from 'lucide-react'
 import { getFullName } from '@/lib/utils'
 import BackButton from '@/components/BackButton'
 import { toast } from '@/lib/toast'
+import UserCodeDisplay from '@/components/UserCodeDisplay'
+import AddByCodeInput from '@/components/AddByCodeInput'
+import PendingConnectionRequests from '@/components/PendingConnectionRequests'
 
 type Profile = Database['public']['Tables']['profiles']['Row']
 type CoachAthlete = Database['public']['Tables']['coach_athletes']['Row']
@@ -15,17 +18,19 @@ type CoachAthlete = Database['public']['Tables']['coach_athletes']['Row']
 export default function CoachAthletesPage() {
   const router = useRouter()
   const supabase = createClient()
-  
+
   const [loading, setLoading] = useState(true)
+  const [coachProfile, setCoachProfile] = useState<Profile | null>(null)
   const [athletes, setAthletes] = useState<Profile[]>([])
   const [assignedAthletes, setAssignedAthletes] = useState<Profile[]>([])
   const [searchTerm, setSearchTerm] = useState('')
   const [showAssignModal, setShowAssignModal] = useState(false)
   const [assigning, setAssigning] = useState<string | null>(null)
+  const [refreshKey, setRefreshKey] = useState(0)
 
   useEffect(() => {
     loadAthletes()
-  }, [])
+  }, [refreshKey])
 
   const loadAthletes = async () => {
     try {
@@ -34,31 +39,40 @@ export default function CoachAthletesPage() {
         router.push('/auth/login')
         return
       }
-      
+
+      // Get coach's profile
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', authSession.user.id)
+        .single()
+
+      setCoachProfile(profileData)
+
       // Get all athletes
       const { data: allAthletes, error: allAthletesError } = await supabase
         .from('profiles')
         .select('*')
         .eq('role', 'athlete')
         .order('first_name')
-      
-      // Get coach's assigned athletes - simplified query
+
+      // Get coach's assigned athletes - use status field for new system
       const { data: coachAthletes } = await supabase
         .from('coach_athletes')
         .select('athlete_id')
         .eq('coach_id', authSession.user.id)
-        .eq('is_active', true)
+        .eq('status', 'active')
 
       const assignedIds = coachAthletes?.map(ca => ca.athlete_id) || []
-      
+
       // Get athlete profiles for assigned athletes
-      let assigned = []
+      let assigned: Profile[] = []
       if (assignedIds.length > 0) {
         const { data: assignedProfiles } = await supabase
           .from('profiles')
           .select('*')
           .in('id', assignedIds)
-        
+
         assigned = assignedProfiles || []
       }
 
@@ -70,6 +84,10 @@ export default function CoachAthletesPage() {
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleConnectionUpdate = () => {
+    setRefreshKey(prev => prev + 1)
   }
 
   const assignAthlete = async (athleteId: string) => {
@@ -167,6 +185,48 @@ export default function CoachAthletesPage() {
           <Plus className="h-4 w-4 mr-2" />
           Assign Athlete
         </button>
+      </div>
+
+      {/* Your Coach Code - Share with Athletes */}
+      {coachProfile?.user_code && (
+        <div className="bg-gradient-to-r from-primary-50 to-primary-100 border border-primary-200 rounded-lg p-6 mb-6">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="bg-primary-500 rounded-full p-2">
+              <UserPlus className="h-5 w-5 text-white" />
+            </div>
+            <h2 className="text-lg font-semibold text-primary-900">Your Coach Code</h2>
+          </div>
+          <p className="text-primary-700 mb-4">
+            Share this code with your athletes so they can connect with you
+          </p>
+          <UserCodeDisplay code={coachProfile.user_code} size="lg" />
+        </div>
+      )}
+
+      {/* Pending Connection Requests from Athletes */}
+      <PendingConnectionRequests
+        userRole="coach"
+        onUpdate={handleConnectionUpdate}
+        className="mb-6"
+      />
+
+      {/* Quick Add by Code */}
+      <div className="bg-white shadow-sm rounded-lg border border-gray-200 mb-6">
+        <div className="p-6">
+          <div className="flex items-center mb-4">
+            <Search className="h-5 w-5 text-gray-400 mr-2" />
+            <h3 className="text-lg leading-6 font-medium text-gray-900">
+              Add Athlete by Code
+            </h3>
+          </div>
+          <p className="text-sm text-gray-600 mb-4">
+            Enter an athlete&apos;s code to send them a connection request
+          </p>
+          <AddByCodeInput
+            expectedRole="athlete"
+            onSuccess={handleConnectionUpdate}
+          />
+        </div>
       </div>
 
       {/* Assigned Athletes */}
