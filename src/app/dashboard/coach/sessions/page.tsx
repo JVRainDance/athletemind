@@ -54,10 +54,20 @@ export default function CoachSessionsPage() {
   // Filters
   const [selectedAthletes, setSelectedAthletes] = useState<string[]>([])
   const [dateRange, setDateRange] = useState<DateRange | undefined>()
+  const [appliedDateRange, setAppliedDateRange] = useState<DateRange | undefined>()
   const [statusFilter, setStatusFilter] = useState<string>('')
   const [showFilters, setShowFilters] = useState(false)
 
   const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE)
+
+  // Only apply date range filter when both dates are selected or when cleared
+  const handleDateRangeChange = (range: DateRange | undefined) => {
+    setDateRange(range)
+    // Apply filter only when both dates are selected or when cleared
+    if (!range || (range.from && range.to)) {
+      setAppliedDateRange(range)
+    }
+  }
 
   const loadAthletes = useCallback(async () => {
     const { data: { session: authSession } } = await supabase.auth.getSession()
@@ -123,12 +133,12 @@ export default function CoachSessionsPage() {
         .order('scheduled_date', { ascending: false })
         .order('start_time', { ascending: false })
 
-      // Apply date range filter
-      if (dateRange?.from) {
-        query = query.gte('scheduled_date', format(dateRange.from, 'yyyy-MM-dd'))
+      // Apply date range filter (only when both dates are set)
+      if (appliedDateRange?.from) {
+        query = query.gte('scheduled_date', format(appliedDateRange.from, 'yyyy-MM-dd'))
       }
-      if (dateRange?.to) {
-        query = query.lte('scheduled_date', format(dateRange.to, 'yyyy-MM-dd'))
+      if (appliedDateRange?.to) {
+        query = query.lte('scheduled_date', format(appliedDateRange.to, 'yyyy-MM-dd'))
       }
 
       // Apply status filter
@@ -155,7 +165,7 @@ export default function CoachSessionsPage() {
     } finally {
       setLoading(false)
     }
-  }, [supabase, router, selectedAthletes, dateRange, statusFilter, currentPage])
+  }, [supabase, router, selectedAthletes, appliedDateRange, statusFilter, currentPage])
 
   useEffect(() => {
     loadAthletes()
@@ -168,7 +178,7 @@ export default function CoachSessionsPage() {
   // Reset to page 1 when filters change
   useEffect(() => {
     setCurrentPage(1)
-  }, [selectedAthletes, dateRange, statusFilter])
+  }, [selectedAthletes, appliedDateRange, statusFilter])
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -208,10 +218,11 @@ export default function CoachSessionsPage() {
   const clearFilters = () => {
     setSelectedAthletes([])
     setDateRange(undefined)
+    setAppliedDateRange(undefined)
     setStatusFilter('')
   }
 
-  const hasActiveFilters = selectedAthletes.length > 0 || dateRange?.from || statusFilter
+  const hasActiveFilters = selectedAthletes.length > 0 || appliedDateRange?.from || statusFilter
 
   return (
     <div className="space-y-6">
@@ -256,7 +267,7 @@ export default function CoachSessionsPage() {
               </label>
               <DateRangePicker
                 value={dateRange}
-                onChange={setDateRange}
+                onChange={handleDateRangeChange}
                 placeholder="Select dates"
               />
             </div>
@@ -330,12 +341,14 @@ export default function CoachSessionsPage() {
                   </span>
                 )
               })}
-              {dateRange?.from && (
+              {appliedDateRange?.from && appliedDateRange?.to && (
                 <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 text-sm rounded-full">
-                  {format(dateRange.from, 'MMM d')}
-                  {dateRange.to && ` - ${format(dateRange.to, 'MMM d')}`}
+                  {format(appliedDateRange.from, 'MMM d')} - {format(appliedDateRange.to, 'MMM d')}
                   <button
-                    onClick={() => setDateRange(undefined)}
+                    onClick={() => {
+                      setDateRange(undefined)
+                      setAppliedDateRange(undefined)
+                    }}
                     className="hover:bg-blue-200 rounded-full p-0.5"
                   >
                     <X className="h-3 w-3" />
