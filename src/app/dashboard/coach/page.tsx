@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { Users, Calendar, TrendingUp, CheckCircle, UserPlus, Bell } from 'lucide-react'
+import { Users, Calendar, TrendingUp, CheckCircle, UserPlus, Bell, Clock, History, ArrowRight } from 'lucide-react'
 import { getFullName } from '@/lib/utils'
 import { buttonVariants } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -36,26 +36,44 @@ export default async function CoachDashboard() {
     .neq('initiated_by', session.user.id)
 
   // Get coach's athletes through the relationship table - use status field
-  const { data: coachAthletes, error: coachAthletesError } = await supabase
+  const { data: coachAthletes } = await supabase
     .from('coach_athletes')
     .select('athlete_id')
     .eq('coach_id', session.user.id)
     .eq('status', 'active')
 
   const assignedIds = coachAthletes?.map(ca => ca.athlete_id) || []
-  
+
   // Get athlete profiles for assigned athletes
-  let athletes = []
+  let athletes: any[] = []
   if (assignedIds.length > 0) {
     const { data: athleteProfiles } = await supabase
       .from('profiles')
       .select('*')
       .in('id', assignedIds)
-    
+
     athletes = athleteProfiles || []
   }
 
-  // Get recent sessions for coach's athletes
+  // Get today's date at midnight for comparison
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const todayISO = today.toISOString().split('T')[0]
+
+  // Get upcoming sessions (scheduled for today or later)
+  const { data: upcomingSessions } = await supabase
+    .from('training_sessions')
+    .select(`
+      *,
+      profiles!inner(first_name, last_name)
+    `)
+    .in('athlete_id', athletes.length > 0 ? athletes.map(a => a.id) : [])
+    .gte('scheduled_date', todayISO)
+    .in('status', ['scheduled', 'pending'])
+    .order('scheduled_date', { ascending: true })
+    .limit(5)
+
+  // Get recent past sessions (completed or missed)
   const { data: recentSessions } = await supabase
     .from('training_sessions')
     .select(`
@@ -63,8 +81,9 @@ export default async function CoachDashboard() {
       profiles!inner(first_name, last_name)
     `)
     .in('athlete_id', athletes.length > 0 ? athletes.map(a => a.id) : [])
+    .lt('scheduled_date', todayISO)
     .order('scheduled_date', { ascending: false })
-    .limit(10)
+    .limit(5)
 
   // Get completion stats for coach's athletes
   const { data: completionStats } = await supabase
@@ -350,46 +369,111 @@ export default async function CoachDashboard() {
         </div>
       </div>
 
-      {/* Recent Sessions */}
-      {recentSessions && recentSessions.length > 0 && (
-        <div className="bg-white shadow rounded-lg">
-          <div className="px-4 py-5 sm:p-6">
-            <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
-              Recent Training Sessions
-            </h3>
-            <div className="space-y-3">
-              {recentSessions.slice(0, 5).map((session) => (
-                <div
-                  key={session.id}
-                  className="flex items-center justify-between gap-3 p-4 border border-gray-200 rounded-lg"
-                >
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium text-gray-900 truncate">
-                      {getFullName(session.profiles?.first_name || '', session.profiles?.last_name)}
-                    </p>
-                    <p className="text-sm text-gray-500 truncate">
-                      {new Date(session.scheduled_date).toLocaleDateString('en-US', {
-                        weekday: 'short',
-                        month: 'short',
-                        day: 'numeric',
-                      })} at {session.start_time}
-                    </p>
-                  </div>
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium flex-shrink-0 ${
-                    session.status === 'completed'
-                      ? 'bg-green-100 text-green-800'
-                      : session.status === 'absent'
-                      ? 'bg-red-100 text-red-800'
-                      : 'bg-yellow-100 text-yellow-800'
-                  }`}>
-                    {session.status}
-                  </span>
-                </div>
-              ))}
+      {/* Sessions Grid - Upcoming and Recent */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Upcoming Sessions */}
+        <div className="bg-white shadow-sm rounded-lg border border-gray-200">
+          <div className="p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <Clock className="h-5 w-5 text-primary-600" />
+                <h3 className="text-lg leading-6 font-medium text-gray-900">
+                  Upcoming Sessions
+                </h3>
+              </div>
             </div>
+            {upcomingSessions && upcomingSessions.length > 0 ? (
+              <div className="space-y-3">
+                {upcomingSessions.map((session) => (
+                  <div
+                    key={session.id}
+                    className="flex items-center justify-between gap-3 p-4 border border-gray-200 rounded-lg bg-gray-50"
+                  >
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium text-gray-900 truncate">
+                        {getFullName(session.profiles?.first_name || '', session.profiles?.last_name)}
+                      </p>
+                      <p className="text-sm text-gray-500 truncate">
+                        {new Date(session.scheduled_date).toLocaleDateString('en-US', {
+                          weekday: 'short',
+                          month: 'short',
+                          day: 'numeric',
+                        })} at {session.start_time}
+                      </p>
+                    </div>
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium flex-shrink-0 bg-blue-100 text-blue-800">
+                      {session.status}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-6">
+                <Clock className="mx-auto h-10 w-10 text-gray-300" />
+                <p className="mt-2 text-sm text-gray-500">No upcoming sessions</p>
+              </div>
+            )}
           </div>
         </div>
-      )}
+
+        {/* Recent Sessions */}
+        <div className="bg-white shadow-sm rounded-lg border border-gray-200">
+          <div className="p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <History className="h-5 w-5 text-gray-500" />
+                <h3 className="text-lg leading-6 font-medium text-gray-900">
+                  Recent Sessions
+                </h3>
+              </div>
+              <Link
+                href="/dashboard/coach/sessions"
+                className="text-sm text-primary-600 hover:text-primary-700 font-medium flex items-center gap-1"
+              >
+                View All
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
+            {recentSessions && recentSessions.length > 0 ? (
+              <div className="space-y-3">
+                {recentSessions.map((session) => (
+                  <div
+                    key={session.id}
+                    className="flex items-center justify-between gap-3 p-4 border border-gray-200 rounded-lg"
+                  >
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium text-gray-900 truncate">
+                        {getFullName(session.profiles?.first_name || '', session.profiles?.last_name)}
+                      </p>
+                      <p className="text-sm text-gray-500 truncate">
+                        {new Date(session.scheduled_date).toLocaleDateString('en-US', {
+                          weekday: 'short',
+                          month: 'short',
+                          day: 'numeric',
+                        })} at {session.start_time}
+                      </p>
+                    </div>
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium flex-shrink-0 ${
+                      session.status === 'completed'
+                        ? 'bg-green-100 text-green-800'
+                        : session.status === 'absent'
+                        ? 'bg-red-100 text-red-800'
+                        : 'bg-yellow-100 text-yellow-800'
+                    }`}>
+                      {session.status}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-6">
+                <History className="mx-auto h-10 w-10 text-gray-300" />
+                <p className="mt-2 text-sm text-gray-500">No past sessions yet</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   )
 }
