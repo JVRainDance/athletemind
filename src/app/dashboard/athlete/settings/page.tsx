@@ -13,6 +13,7 @@ import AddByCodeInput from '@/components/AddByCodeInput'
 import PendingConnectionRequests from '@/components/PendingConnectionRequests'
 import { getFullName } from '@/lib/utils'
 import { ConnectionRequest } from '@/types/connections'
+import { SettingsSkeleton } from '@/components/skeletons/settings-skeleton'
 
 export default function SettingsPage() {
   const [profile, setProfile] = useState<any>(null)
@@ -85,11 +86,7 @@ export default function SettingsPage() {
   }
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
-      </div>
-    )
+    return <SettingsSkeleton />
   }
 
   if (!profile) {
@@ -162,10 +159,10 @@ export default function SettingsPage() {
                 {connectedCoaches.map((connection) => (
                   <div
                     key={connection.id}
-                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                    className="flex items-center justify-between gap-3 p-3 bg-gray-50 rounded-lg"
                   >
-                    <div>
-                      <p className="font-medium text-gray-900">
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium text-gray-900 truncate">
                         {connection.coach ? getFullName(connection.coach.first_name, connection.coach.last_name) : 'Unknown Coach'}
                       </p>
                       {connection.coach?.user_code && (
@@ -174,7 +171,7 @@ export default function SettingsPage() {
                         </code>
                       )}
                     </div>
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 flex-shrink-0">
                       Connected
                     </span>
                   </div>

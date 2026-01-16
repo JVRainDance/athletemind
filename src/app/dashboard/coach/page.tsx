@@ -361,32 +361,29 @@ export default async function CoachDashboard() {
               {recentSessions.slice(0, 5).map((session) => (
                 <div
                   key={session.id}
-                  className="flex items-center justify-between p-4 border border-gray-200 rounded-lg"
+                  className="flex items-center justify-between gap-3 p-4 border border-gray-200 rounded-lg"
                 >
-                  <div>
-                    <p className="text-sm font-medium text-gray-900">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium text-gray-900 truncate">
                       {getFullName(session.profiles?.first_name || '', session.profiles?.last_name)}
                     </p>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-gray-500 truncate">
                       {new Date(session.scheduled_date).toLocaleDateString('en-US', {
-                        weekday: 'long',
-                        year: 'numeric',
-                        month: 'long',
+                        weekday: 'short',
+                        month: 'short',
                         day: 'numeric',
                       })} at {session.start_time}
                     </p>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                      session.status === 'completed' 
-                        ? 'bg-green-100 text-green-800'
-                        : session.status === 'absent'
-                        ? 'bg-red-100 text-red-800'
-                        : 'bg-yellow-100 text-yellow-800'
-                    }`}>
-                      {session.status}
-                    </span>
-                  </div>
+                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium flex-shrink-0 ${
+                    session.status === 'completed'
+                      ? 'bg-green-100 text-green-800'
+                      : session.status === 'absent'
+                      ? 'bg-red-100 text-red-800'
+                      : 'bg-yellow-100 text-yellow-800'
+                  }`}>
+                    {session.status}
+                  </span>
                 </div>
               ))}
             </div>

@@ -76,9 +76,7 @@ export function PendingConnectionRequests({
   }
 
   if (loading) {
-    return (
-      <div className={`animate-pulse bg-gray-100 rounded-lg h-24 ${className}`} />
-    )
+    return null // Don't show placeholder during loading to avoid layout shift
   }
 
   if (requests.length === 0) {

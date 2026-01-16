@@ -10,6 +10,7 @@ import UserCodeDisplay from '@/components/UserCodeDisplay'
 import AddByCodeInput from '@/components/AddByCodeInput'
 import PendingConnectionRequests from '@/components/PendingConnectionRequests'
 import { Button } from '@/components/ui/button'
+import { AthletesListSkeleton } from '@/components/skeletons/athletes-list-skeleton'
 
 type Profile = Database['public']['Tables']['profiles']['Row']
 
@@ -106,14 +107,7 @@ export default function CoachAthletesPage() {
   }
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading athletes...</p>
-        </div>
-      </div>
-    )
+    return <AthletesListSkeleton />
   }
 
   return (
@@ -177,20 +171,20 @@ export default function CoachAthletesPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {assignedAthletes.map((athlete) => (
                 <div key={athlete.id} className="border border-gray-200 rounded-lg p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h4 className="text-sm font-medium text-gray-900">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                      <h4 className="text-sm font-medium text-gray-900 truncate">
                         {getFullName(athlete.first_name, athlete.last_name)}
                       </h4>
-                      <p className="text-sm text-gray-500">{athlete.email}</p>
+                      <p className="text-sm text-gray-500 truncate">{athlete.email}</p>
                     </div>
-                    <div className="flex space-x-2">
+                    <div className="flex space-x-2 flex-shrink-0">
                       <Button
                         size="sm"
                         variant="link"
                         onClick={() => router.push(`/dashboard/coach/athletes/${athlete.id}`)}
                       >
-                        View Details
+                        View
                       </Button>
                       <Button
                         size="sm"
@@ -198,7 +192,7 @@ export default function CoachAthletesPage() {
                         onClick={() => removeAthlete(athlete.id)}
                         disabled={removing === athlete.id}
                         loading={removing === athlete.id}
-                        loadingText="Removing..."
+                        loadingText="..."
                         className="text-red-600 hover:text-red-700"
                       >
                         Remove

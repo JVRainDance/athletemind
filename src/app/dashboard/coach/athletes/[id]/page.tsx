@@ -7,6 +7,7 @@ import { Database } from '@/types/database'
 import { ArrowLeft, Calendar, Target, TrendingUp, CheckCircle, Clock, Star, BarChart3 } from 'lucide-react'
 import { getFullName } from '@/lib/utils'
 import BackButton from '@/components/BackButton'
+import { AthleteDetailSkeleton } from '@/components/skeletons/athlete-detail-skeleton'
 
 type Profile = Database['public']['Tables']['profiles']['Row']
 type TrainingSession = Database['public']['Tables']['training_sessions']['Row']
@@ -179,14 +180,7 @@ export default function AthleteDetailPage() {
   }
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading athlete details...</p>
-        </div>
-      </div>
-    )
+    return <AthleteDetailSkeleton />
   }
 
   if (!athlete) {
@@ -212,11 +206,11 @@ export default function AthleteDetailPage() {
       {/* Header */}
       <div className="flex items-center space-x-4">
         <BackButton href="/dashboard/coach" />
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">
+        <div className="min-w-0 flex-1">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 truncate">
             {getFullName(athlete.first_name, athlete.last_name)}
           </h1>
-          <p className="mt-1 text-gray-600">{athlete.email}</p>
+          <p className="mt-1 text-gray-600 truncate">{athlete.email}</p>
         </div>
       </div>
 

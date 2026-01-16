@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase-client'
 import { Database } from '@/types/database'
 import { Flame, Star, Gift, Target, BarChart3, Calendar, ArrowRight, Sparkles } from 'lucide-react'
 import BackButton from '@/components/BackButton'
+import { ProgressSkeleton } from '@/components/skeletons/progress-skeleton'
 
 type Session = Database['public']['Tables']['training_sessions']['Row']
 type Goal = Database['public']['Tables']['session_goals']['Row']
@@ -284,14 +285,7 @@ export default function AthleteProgressPage() {
   }
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading your progress...</p>
-        </div>
-      </div>
-    )
+    return <ProgressSkeleton />
   }
 
   const nextReward = getNextReward()

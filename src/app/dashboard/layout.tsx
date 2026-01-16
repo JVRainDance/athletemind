@@ -53,6 +53,7 @@ export default async function DashboardLayout({
               <ProfileDropdown
                 firstName={profile.first_name}
                 lastName={profile.last_name}
+                role={profile.role as 'athlete' | 'coach'}
               />
             </div>
           </div>

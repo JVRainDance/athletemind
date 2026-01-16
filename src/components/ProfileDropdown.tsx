@@ -9,9 +9,10 @@ import { createClient } from '@/lib/supabase-client'
 interface ProfileDropdownProps {
   firstName: string
   lastName: string
+  role: 'athlete' | 'coach'
 }
 
-export default function ProfileDropdown({ firstName, lastName }: ProfileDropdownProps) {
+export default function ProfileDropdown({ firstName, lastName, role }: ProfileDropdownProps) {
   const [isOpen, setIsOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
@@ -47,8 +48,15 @@ export default function ProfileDropdown({ firstName, lastName }: ProfileDropdown
         aria-haspopup="true"
         className="flex items-center space-x-3 text-gray-900 hover:text-gray-700 transition-colors"
       >
-        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800" aria-label="Role: Athlete">
-          athlete
+        <span
+          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+            role === 'coach'
+              ? 'bg-purple-100 text-purple-800'
+              : 'bg-blue-100 text-blue-800'
+          }`}
+          aria-label={`Role: ${role}`}
+        >
+          {role}
         </span>
         <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center border border-gray-200" aria-hidden="true">
           <span className="text-blue-600 font-bold text-sm">{initials}</span>
@@ -65,52 +73,91 @@ export default function ProfileDropdown({ firstName, lastName }: ProfileDropdown
         >
           <div className="px-4 py-2 border-b border-gray-100">
             <p className="text-sm font-medium text-gray-900">{firstName} {lastName}</p>
-            <p className="text-xs text-gray-500">Athlete</p>
+            <p className="text-xs text-gray-500 capitalize">{role}</p>
           </div>
 
-          <Link
-            href="/dashboard/athlete/profile"
-            className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
-            onClick={() => setIsOpen(false)}
-            role="menuitem"
-            aria-label="Go to Profile page"
-          >
-            <User className="w-4 h-4 mr-3" aria-hidden="true" />
-            Profile
-          </Link>
+          {role === 'athlete' ? (
+            <>
+              <Link
+                href="/dashboard/athlete/profile"
+                className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                onClick={() => setIsOpen(false)}
+                role="menuitem"
+                aria-label="Go to Profile page"
+              >
+                <User className="w-4 h-4 mr-3" aria-hidden="true" />
+                Profile
+              </Link>
 
-          <Link
-            href="/dashboard/athlete/sessions"
-            className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
-            onClick={() => setIsOpen(false)}
-            role="menuitem"
-            aria-label="Go to Training Sessions page"
-          >
-            <Clock className="w-4 h-4 mr-3" aria-hidden="true" />
-            Training Sessions
-          </Link>
+              <Link
+                href="/dashboard/athlete/sessions"
+                className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                onClick={() => setIsOpen(false)}
+                role="menuitem"
+                aria-label="Go to Training Sessions page"
+              >
+                <Clock className="w-4 h-4 mr-3" aria-hidden="true" />
+                Training Sessions
+              </Link>
 
-          <Link
-            href="/dashboard/athlete/schedule"
-            className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
-            onClick={() => setIsOpen(false)}
-            role="menuitem"
-            aria-label="Go to Schedule page"
-          >
-            <Calendar className="w-4 h-4 mr-3" aria-hidden="true" />
-            Schedule
-          </Link>
+              <Link
+                href="/dashboard/athlete/schedule"
+                className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                onClick={() => setIsOpen(false)}
+                role="menuitem"
+                aria-label="Go to Schedule page"
+              >
+                <Calendar className="w-4 h-4 mr-3" aria-hidden="true" />
+                Schedule
+              </Link>
 
-          <Link
-            href="/dashboard/athlete/settings"
-            className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
-            onClick={() => setIsOpen(false)}
-            role="menuitem"
-            aria-label="Go to Settings page"
-          >
-            <Settings className="w-4 h-4 mr-3" aria-hidden="true" />
-            Settings
-          </Link>
+              <Link
+                href="/dashboard/athlete/settings"
+                className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                onClick={() => setIsOpen(false)}
+                role="menuitem"
+                aria-label="Go to Settings page"
+              >
+                <Settings className="w-4 h-4 mr-3" aria-hidden="true" />
+                Settings
+              </Link>
+            </>
+          ) : (
+            <>
+              <Link
+                href="/dashboard/coach"
+                className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                onClick={() => setIsOpen(false)}
+                role="menuitem"
+                aria-label="Go to Dashboard"
+              >
+                <User className="w-4 h-4 mr-3" aria-hidden="true" />
+                Dashboard
+              </Link>
+
+              <Link
+                href="/dashboard/coach/athletes"
+                className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                onClick={() => setIsOpen(false)}
+                role="menuitem"
+                aria-label="Go to Athletes page"
+              >
+                <Clock className="w-4 h-4 mr-3" aria-hidden="true" />
+                Athletes
+              </Link>
+
+              <Link
+                href="/dashboard/coach/settings"
+                className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                onClick={() => setIsOpen(false)}
+                role="menuitem"
+                aria-label="Go to Settings page"
+              >
+                <Settings className="w-4 h-4 mr-3" aria-hidden="true" />
+                Settings
+              </Link>
+            </>
+          )}
 
           <div className="border-t border-gray-100 mt-1">
             <button
