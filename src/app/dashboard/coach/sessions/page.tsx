@@ -16,9 +16,8 @@ import {
   X
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { DateRangePicker } from '@/components/ui/date-range-picker'
+import { DateRangePicker, DateRangeValue } from '@/components/ui/date-range-picker'
 import { getFullName, formatDate } from '@/lib/utils'
-import { DateRange } from 'react-day-picker'
 import { format } from 'date-fns'
 import { TableSkeleton } from '@/components/skeletons/table-skeleton'
 
@@ -53,15 +52,15 @@ export default function CoachSessionsPage() {
 
   // Filters
   const [selectedAthletes, setSelectedAthletes] = useState<string[]>([])
-  const [dateRange, setDateRange] = useState<DateRange | undefined>()
-  const [appliedDateRange, setAppliedDateRange] = useState<DateRange | undefined>()
+  const [dateRange, setDateRange] = useState<DateRangeValue | undefined>()
+  const [appliedDateRange, setAppliedDateRange] = useState<DateRangeValue | undefined>()
   const [statusFilter, setStatusFilter] = useState<string>('')
   const [showFilters, setShowFilters] = useState(false)
 
   const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE)
 
   // Only apply date range filter when both dates are selected or when cleared
-  const handleDateRangeChange = (range: DateRange | undefined) => {
+  const handleDateRangeChange = (range: DateRangeValue | undefined) => {
     setDateRange(range)
     // Apply filter only when both dates are selected or when cleared
     if (!range || (range.from && range.to)) {

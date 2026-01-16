@@ -3,15 +3,21 @@
 import * as React from 'react'
 import { format } from 'date-fns'
 import { Calendar as CalendarIcon, X } from 'lucide-react'
-import { DateRange, DayPicker } from 'react-day-picker'
+import { DateRange, Range, RangeKeyDict } from 'react-date-range'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 
-import 'react-day-picker/dist/style.css'
+import 'react-date-range/dist/styles.css'
+import 'react-date-range/dist/theme/default.css'
+
+export interface DateRangeValue {
+  from: Date | undefined
+  to: Date | undefined
+}
 
 interface DateRangePickerProps {
-  value?: DateRange
-  onChange?: (range: DateRange | undefined) => void
+  value?: DateRangeValue
+  onChange?: (range: DateRangeValue | undefined) => void
   placeholder?: string
   className?: string
   disabled?: boolean
@@ -26,6 +32,22 @@ export function DateRangePicker({
 }: DateRangePickerProps) {
   const [isOpen, setIsOpen] = React.useState(false)
   const containerRef = React.useRef<HTMLDivElement>(null)
+
+  // Internal state for the calendar selection
+  const [selectionRange, setSelectionRange] = React.useState<Range>({
+    startDate: value?.from || new Date(),
+    endDate: value?.to || new Date(),
+    key: 'selection',
+  })
+
+  // Sync internal state with external value
+  React.useEffect(() => {
+    setSelectionRange({
+      startDate: value?.from || new Date(),
+      endDate: value?.to || new Date(),
+      key: 'selection',
+    })
+  }, [value?.from, value?.to])
 
   // Close dropdown when clicking outside
   React.useEffect(() => {
@@ -42,6 +64,40 @@ export function DateRangePicker({
   const handleClear = (e: React.MouseEvent) => {
     e.stopPropagation()
     onChange?.(undefined)
+    setSelectionRange({
+      startDate: new Date(),
+      endDate: new Date(),
+      key: 'selection',
+    })
+  }
+
+  const handleSelect = (ranges: RangeKeyDict) => {
+    const selection = ranges.selection
+    setSelectionRange(selection)
+
+    // Only call onChange when both dates are different (user completed selection)
+    if (selection.startDate && selection.endDate) {
+      const startTime = selection.startDate.getTime()
+      const endTime = selection.endDate.getTime()
+
+      // Check if this is a completed range (not just clicking the same date)
+      if (startTime !== endTime) {
+        onChange?.({
+          from: selection.startDate,
+          to: selection.endDate,
+        })
+      }
+    }
+  }
+
+  const handleApply = () => {
+    if (selectionRange.startDate && selectionRange.endDate) {
+      onChange?.({
+        from: selectionRange.startDate,
+        to: selectionRange.endDate,
+      })
+    }
+    setIsOpen(false)
   }
 
   const displayValue = React.useMemo(() => {
@@ -80,54 +136,63 @@ export function DateRangePicker({
       </button>
 
       {isOpen && (
-        <div className="absolute top-full left-0 z-50 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg p-3">
-          <DayPicker
-            mode="range"
-            selected={value}
-            onSelect={(range) => {
-              onChange?.(range)
-              if (range?.from && range?.to) {
-                setIsOpen(false)
-              }
-            }}
-            numberOfMonths={2}
-            className="rdp-custom"
-            classNames={{
-              months: 'flex gap-4',
-              month: 'space-y-4',
-              caption: 'flex justify-center pt-1 relative items-center',
-              caption_label: 'text-sm font-medium text-gray-900',
-              nav: 'space-x-1 flex items-center',
-              nav_button: cn(
-                'h-7 w-7 bg-transparent p-0 hover:bg-gray-100 rounded-md',
-                'inline-flex items-center justify-center'
-              ),
-              nav_button_previous: 'absolute left-1',
-              nav_button_next: 'absolute right-1',
-              table: 'w-full border-collapse space-y-1',
-              head_row: 'flex',
-              head_cell: 'text-gray-500 rounded-md w-9 font-normal text-xs',
-              row: 'flex w-full mt-2',
-              cell: 'text-center text-sm p-0 relative first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20',
-              day: cn(
-                'h-9 w-9 p-0 font-normal',
-                'hover:bg-gray-100 rounded-md',
-                'focus:outline-none focus:ring-2 focus:ring-primary-500'
-              ),
-              day_selected: 'bg-primary-600 text-white hover:bg-primary-700',
-              day_today: 'bg-gray-100 text-gray-900',
-              day_outside: 'text-gray-400 opacity-50',
-              day_disabled: 'text-gray-400 opacity-50',
-              day_range_middle: 'bg-primary-100 text-primary-900 rounded-none',
-              day_hidden: 'invisible',
-            }}
+        <div className="absolute top-full left-0 z-50 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg">
+          <style jsx global>{`
+            .rdrCalendarWrapper {
+              font-size: 14px;
+            }
+            .rdrDateDisplayWrapper {
+              background-color: #f9fafb;
+            }
+            .rdrDateDisplay {
+              margin: 0.5rem;
+            }
+            .rdrDateDisplayItem {
+              border-radius: 0.5rem;
+              border-color: #e5e7eb;
+            }
+            .rdrDateDisplayItem input {
+              color: #111827;
+            }
+            .rdrMonthAndYearPickers select {
+              color: #111827;
+            }
+            .rdrDayNumber span {
+              color: #111827;
+            }
+            .rdrDayPassive .rdrDayNumber span {
+              color: #9ca3af;
+            }
+            .rdrDayToday .rdrDayNumber span:after {
+              background: #3b82f6;
+            }
+            .rdrDay:not(.rdrDayPassive) .rdrInRange ~ .rdrDayNumber span,
+            .rdrDay:not(.rdrDayPassive) .rdrStartEdge ~ .rdrDayNumber span,
+            .rdrDay:not(.rdrDayPassive) .rdrEndEdge ~ .rdrDayNumber span {
+              color: white;
+            }
+            .rdrStartEdge, .rdrEndEdge, .rdrInRange {
+              background: #3b82f6;
+            }
+            .rdrDayStartPreview, .rdrDayInPreview, .rdrDayEndPreview {
+              border-color: #3b82f6;
+            }
+          `}</style>
+          <DateRange
+            ranges={[selectionRange]}
+            onChange={handleSelect}
+            moveRangeOnFirstSelection={false}
+            months={2}
+            direction="horizontal"
+            showDateDisplay={true}
+            rangeColors={['#3b82f6']}
           />
-          <div className="flex justify-end gap-2 mt-3 pt-3 border-t border-gray-200">
+          <div className="flex justify-end gap-2 p-3 border-t border-gray-200">
             <Button
               size="sm"
               variant="outline"
               onClick={() => {
-                onChange?.(undefined)
+                handleClear({ stopPropagation: () => {} } as React.MouseEvent)
                 setIsOpen(false)
               }}
             >
@@ -135,9 +200,9 @@ export function DateRangePicker({
             </Button>
             <Button
               size="sm"
-              onClick={() => setIsOpen(false)}
+              onClick={handleApply}
             >
-              Done
+              Apply
             </Button>
           </div>
         </div>
