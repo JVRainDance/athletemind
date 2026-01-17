@@ -21,7 +21,7 @@ export default function ExtraSessionButton({ athleteId }: ExtraSessionButtonProp
     <>
       <button
         onClick={() => setIsModalOpen(true)}
-        className="flex-1 inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+        className="w-full sm:w-auto sm:flex-1 inline-flex justify-center items-center px-4 py-3 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 min-h-[44px] transition-colors"
       >
         <Plus className="h-5 w-5 mr-2" />
         Add an extra session

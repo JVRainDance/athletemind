@@ -228,10 +228,10 @@ export function BottomNav() {
 
   return (
     <nav
-      className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50 safe-area-inset-bottom"
+      className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50 safe-area-bottom"
       aria-label="Bottom navigation"
     >
-      <div className="flex items-center justify-around px-2 py-2">
+      <div className="flex items-center justify-around px-1 sm:px-2 py-1 sm:py-2">
         {quickNavItems.map((item) => {
           const Icon = item.icon
           const active = isActive(item.href)
@@ -241,18 +241,18 @@ export function BottomNav() {
               key={item.name}
               href={item.href}
               className={`
-                flex flex-col items-center justify-center min-w-[60px] min-h-[60px] rounded-lg transition-colors
+                flex flex-col items-center justify-center min-w-[56px] sm:min-w-[64px] min-h-[48px] sm:min-h-[56px] px-1 sm:px-2 rounded-lg transition-colors
                 ${
                   active
-                    ? 'text-primary-600'
+                    ? 'text-primary-600 bg-primary-50'
                     : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
                 }
               `}
               aria-label={item.name}
               aria-current={active ? 'page' : undefined}
             >
-              <Icon className="w-6 h-6 mb-1" aria-hidden="true" />
-              <span className="text-xs font-medium">{item.name}</span>
+              <Icon className="w-5 h-5 sm:w-6 sm:h-6 mb-0.5" aria-hidden="true" />
+              <span className="text-[10px] sm:text-xs font-medium leading-tight">{item.name}</span>
             </Link>
           )
         })}

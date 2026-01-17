@@ -104,14 +104,14 @@ export default function AbsenceModal({ isOpen, onClose, athleteId }: AbsenceModa
     <Dialog.Root open={isOpen} onOpenChange={onClose}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 bg-black bg-opacity-50 z-50 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
-        <Dialog.Content className="fixed left-[50%] top-[50%] z-50 max-h-[90vh] w-[90vw] max-w-2xl translate-x-[-50%] translate-y-[-50%] overflow-y-auto rounded-lg bg-white shadow-xl data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%]">
-          <div className="flex items-center justify-between p-6 border-b border-gray-200">
-            <Dialog.Title className="text-xl font-semibold text-gray-900">
+        <Dialog.Content className="fixed left-[50%] top-[50%] z-50 max-h-[calc(100vh-2rem)] w-[calc(100%-2rem)] max-w-2xl translate-x-[-50%] translate-y-[-50%] overflow-y-auto rounded-lg bg-white shadow-xl data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%]">
+          <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200">
+            <Dialog.Title className="text-lg sm:text-xl font-semibold text-gray-900">
               Record Training Absence
             </Dialog.Title>
             <Dialog.Close asChild>
               <button
-                className="text-gray-400 hover:text-gray-600 transition-colors"
+                className="flex items-center justify-center w-10 h-10 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
                 aria-label="Close"
               >
                 <X className="w-6 h-6" />
@@ -119,7 +119,7 @@ export default function AbsenceModal({ isOpen, onClose, athleteId }: AbsenceModa
             </Dialog.Close>
           </div>
 
-          <form onSubmit={handleSubmit} className="p-6 space-y-6">
+          <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-6">
           {/* Session Selection */}
           <div>
             <h3 className="text-lg font-medium text-gray-900 mb-4">
@@ -234,11 +234,11 @@ export default function AbsenceModal({ isOpen, onClose, athleteId }: AbsenceModa
           )}
 
           {/* Action Buttons */}
-          <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
+          <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 pt-4 border-t border-gray-200">
             <Dialog.Close asChild>
               <button
                 type="button"
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+                className="w-full sm:w-auto px-4 py-3 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors min-h-[44px]"
               >
                 Cancel
               </button>
@@ -246,7 +246,7 @@ export default function AbsenceModal({ isOpen, onClose, athleteId }: AbsenceModa
             <button
               type="submit"
               disabled={!selectedSession || !selectedReason || loading || (selectedReason === 'Other' && !customReason.trim())}
-              className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-md transition-colors"
+              className="w-full sm:w-auto px-4 py-3 text-sm font-medium text-white bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-md transition-colors min-h-[44px]"
             >
               {loading ? 'Recording...' : 'Record Absence'}
             </button>

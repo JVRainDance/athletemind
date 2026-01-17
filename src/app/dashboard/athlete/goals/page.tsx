@@ -266,7 +266,7 @@ export default function GoalsPage() {
                         <button
                           onClick={() => handleDeleteGoal(goal.id)}
                           disabled={deletingGoalId === goal.id}
-                          className="text-red-600 hover:text-red-900 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="flex-shrink-0 px-3 py-2 text-red-600 hover:text-red-900 hover:bg-red-50 text-sm font-medium rounded-md disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px] min-w-[44px] flex items-center justify-center transition-colors"
                         >
                           {deletingGoalId === goal.id ? 'Deleting...' : 'Delete'}
                         </button>
@@ -322,7 +322,7 @@ export default function GoalsPage() {
             <div className="mt-6">
               <button
                 onClick={() => router.push('/dashboard/athlete/schedule')}
-                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700"
+                className="inline-flex items-center px-4 py-3 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 min-h-[44px]"
               >
                 Set Up Schedule
               </button>

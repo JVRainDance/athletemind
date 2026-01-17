@@ -136,7 +136,7 @@ export function DateRangePicker({
       </button>
 
       {isOpen && (
-        <div className="absolute top-full left-0 z-50 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg">
+        <div className="absolute top-full left-0 sm:left-auto sm:right-0 z-50 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-w-[calc(100vw-2rem)] overflow-x-auto">
           <style jsx global>{`
             .rdrCalendarWrapper {
               font-size: 14px;
@@ -178,15 +178,28 @@ export function DateRangePicker({
               border-color: #3b82f6;
             }
           `}</style>
-          <DateRange
-            ranges={[selectionRange]}
-            onChange={handleSelect}
-            moveRangeOnFirstSelection={false}
-            months={2}
-            direction="horizontal"
-            showDateDisplay={true}
-            rangeColors={['#3b82f6']}
-          />
+          <div className="hidden sm:block">
+            <DateRange
+              ranges={[selectionRange]}
+              onChange={handleSelect}
+              moveRangeOnFirstSelection={false}
+              months={2}
+              direction="horizontal"
+              showDateDisplay={true}
+              rangeColors={['#3b82f6']}
+            />
+          </div>
+          <div className="sm:hidden">
+            <DateRange
+              ranges={[selectionRange]}
+              onChange={handleSelect}
+              moveRangeOnFirstSelection={false}
+              months={1}
+              direction="vertical"
+              showDateDisplay={true}
+              rangeColors={['#3b82f6']}
+            />
+          </div>
           <div className="flex justify-end gap-2 p-3 border-t border-gray-200">
             <Button
               size="sm"
