@@ -14,6 +14,9 @@ import {
   User,
   Settings,
   LogOut,
+  BarChart3,
+  BookOpen,
+  History,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase-client'
 
@@ -209,22 +212,36 @@ export function MobileNav({ firstName, lastName }: MobileNavProps) {
 }
 
 // Bottom navigation bar for mobile (alternative to hamburger)
-export function BottomNav() {
+interface BottomNavProps {
+  role?: 'athlete' | 'coach'
+}
+
+export function BottomNav({ role = 'athlete' }: BottomNavProps) {
   const pathname = usePathname()
 
-  const isActive = (href: string) => {
-    if (href === '/dashboard/athlete') {
+  const isActive = (href: string, basePath: string) => {
+    if (href === basePath) {
       return pathname === href
     }
     return pathname?.startsWith(href)
   }
 
-  const quickNavItems = [
+  const athleteNavItems = [
     { name: 'Home', href: '/dashboard/athlete', icon: Home },
     { name: 'Sessions', href: '/dashboard/athlete/sessions', icon: Clock },
     { name: 'Schedule', href: '/dashboard/athlete/schedule', icon: Calendar },
     { name: 'Progress', href: '/dashboard/athlete/progress', icon: TrendingUp },
   ]
+
+  const coachNavItems = [
+    { name: 'Home', href: '/dashboard/coach', icon: Home },
+    { name: 'Athletes', href: '/dashboard/coach/athletes', icon: BarChart3 },
+    { name: 'Journals', href: '/dashboard/coach/journals', icon: BookOpen },
+    { name: 'Sessions', href: '/dashboard/coach/sessions', icon: History },
+  ]
+
+  const quickNavItems = role === 'coach' ? coachNavItems : athleteNavItems
+  const basePath = role === 'coach' ? '/dashboard/coach' : '/dashboard/athlete'
 
   return (
     <nav
@@ -234,7 +251,7 @@ export function BottomNav() {
       <div className="flex items-center justify-around px-1 sm:px-2 py-1 sm:py-2">
         {quickNavItems.map((item) => {
           const Icon = item.icon
-          const active = isActive(item.href)
+          const active = isActive(item.href, basePath)
 
           return (
             <Link

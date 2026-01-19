@@ -1,10 +1,42 @@
 import { createClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { Users, Calendar, TrendingUp, CheckCircle, UserPlus, Bell, Clock, History, ArrowRight } from 'lucide-react'
+import { Users, Calendar, TrendingUp, CheckCircle, UserPlus, Bell, Clock, History, ArrowRight, BookOpen } from 'lucide-react'
 import { getFullName } from '@/lib/utils'
 import { buttonVariants } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+
+// Helper to format date in user's timezone (for server components)
+function formatDateInTimezone(date: Date | string, timezone: string, options?: Intl.DateTimeFormatOptions): string {
+  try {
+    const dateObj = typeof date === 'string' ? new Date(date + 'T00:00:00') : date
+    return new Intl.DateTimeFormat('en-US', {
+      timeZone: timezone,
+      ...options
+    }).format(dateObj)
+  } catch {
+    const dateObj = typeof date === 'string' ? new Date(date) : date
+    return dateObj.toLocaleDateString('en-US', options)
+  }
+}
+
+// Helper to get today's date in a specific timezone
+function getTodayInTimezone(timezone: string): string {
+  try {
+    const now = new Date()
+    // Format the current date in the target timezone and extract YYYY-MM-DD
+    const formatter = new Intl.DateTimeFormat('en-CA', {
+      timeZone: timezone,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    })
+    return formatter.format(now) // Returns YYYY-MM-DD format
+  } catch {
+    // Fallback to UTC
+    return new Date().toISOString().split('T')[0]
+  }
+}
 
 export default async function CoachDashboard() {
   const supabase = createClient()
@@ -19,7 +51,7 @@ export default async function CoachDashboard() {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('role, first_name, last_name, user_code')
+    .select('role, first_name, last_name, user_code, timezone')
     .eq('id', session.user.id)
     .single()
 
@@ -55,10 +87,9 @@ export default async function CoachDashboard() {
     athletes = athleteProfiles || []
   }
 
-  // Get today's date at midnight for comparison
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-  const todayISO = today.toISOString().split('T')[0]
+  // Get today's date in the coach's timezone for comparison
+  const coachTimezone = profile.timezone || 'UTC'
+  const todayISO = getTodayInTimezone(coachTimezone)
 
   // Get upcoming sessions (scheduled for today or later)
   const { data: upcomingSessions } = await supabase
@@ -274,7 +305,7 @@ export default async function CoachDashboard() {
                           <div className="text-sm text-gray-900">
                             <div className="font-medium">Last Session:</div>
                             <div className="text-xs text-gray-500">
-                              {new Date(lastSession.scheduled_date).toLocaleDateString()} - {lastSession.status}
+                              {formatDateInTimezone(lastSession.scheduled_date, coachTimezone, { month: 'short', day: 'numeric' })} - {lastSession.status}
                             </div>
                           </div>
                         ) : (
@@ -332,7 +363,7 @@ export default async function CoachDashboard() {
                           {lastSession ? (
                             <div className="text-sm text-gray-900">
                               <div>
-                                {new Date(lastSession.scheduled_date).toLocaleDateString()}
+                                {formatDateInTimezone(lastSession.scheduled_date, coachTimezone, { month: 'short', day: 'numeric', year: 'numeric' })}
                               </div>
                               <div className="text-xs text-gray-500">
                                 Status: {lastSession.status}
@@ -381,6 +412,13 @@ export default async function CoachDashboard() {
                   Upcoming Sessions
                 </h3>
               </div>
+              <Link
+                href="/dashboard/coach/journals"
+                className="text-sm text-primary-600 hover:text-primary-700 font-medium flex items-center gap-1"
+              >
+                <BookOpen className="h-4 w-4" />
+                View Journals
+              </Link>
             </div>
             {upcomingSessions && upcomingSessions.length > 0 ? (
               <div className="space-y-3">
@@ -394,7 +432,7 @@ export default async function CoachDashboard() {
                         {getFullName(session.profiles?.first_name || '', session.profiles?.last_name)}
                       </p>
                       <p className="text-sm text-gray-500 truncate">
-                        {new Date(session.scheduled_date).toLocaleDateString('en-US', {
+                        {formatDateInTimezone(session.scheduled_date, coachTimezone, {
                           weekday: 'short',
                           month: 'short',
                           day: 'numeric',
@@ -446,7 +484,7 @@ export default async function CoachDashboard() {
                         {getFullName(session.profiles?.first_name || '', session.profiles?.last_name)}
                       </p>
                       <p className="text-sm text-gray-500 truncate">
-                        {new Date(session.scheduled_date).toLocaleDateString('en-US', {
+                        {formatDateInTimezone(session.scheduled_date, coachTimezone, {
                           weekday: 'short',
                           month: 'short',
                           day: 'numeric',

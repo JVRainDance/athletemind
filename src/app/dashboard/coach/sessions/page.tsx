@@ -17,7 +17,8 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { DateRangePicker, DateRangeValue } from '@/components/ui/date-range-picker'
-import { getFullName, formatDate } from '@/lib/utils'
+import { getFullName } from '@/lib/utils'
+import { formatDateInTimezone } from '@/lib/timezone-utils'
 import { format } from 'date-fns'
 import { TableSkeleton } from '@/components/skeletons/table-skeleton'
 
@@ -49,6 +50,7 @@ export default function CoachSessionsPage() {
   const [athletes, setAthletes] = useState<Profile[]>([])
   const [totalCount, setTotalCount] = useState(0)
   const [currentPage, setCurrentPage] = useState(1)
+  const [coachTimezone, setCoachTimezone] = useState<string>('UTC')
 
   // Filters
   const [selectedAthletes, setSelectedAthletes] = useState<string[]>([])
@@ -71,6 +73,17 @@ export default function CoachSessionsPage() {
   const loadAthletes = useCallback(async () => {
     const { data: { session: authSession } } = await supabase.auth.getSession()
     if (!authSession) return
+
+    // Get coach's profile with timezone
+    const { data: coachProfile } = await supabase
+      .from('profiles')
+      .select('timezone')
+      .eq('id', authSession.user.id)
+      .single()
+
+    if (coachProfile && 'timezone' in coachProfile && coachProfile.timezone) {
+      setCoachTimezone(coachProfile.timezone as string)
+    }
 
     // Get coach's connected athletes
     const { data: coachAthletes } = await supabase
@@ -398,7 +411,7 @@ export default function CoachSessionsPage() {
                             {getFullName(session.profiles?.first_name || '', session.profiles?.last_name)}
                           </p>
                           <p className="text-sm text-gray-500">
-                            {formatDate(session.scheduled_date)}
+                            {formatDateInTimezone(session.scheduled_date, coachTimezone, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
                           </p>
                           <p className="text-xs text-gray-400">
                             {session.start_time} - {session.end_time}
@@ -455,7 +468,7 @@ export default function CoachSessionsPage() {
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {formatDate(session.scheduled_date)}
+                          {formatDateInTimezone(session.scheduled_date, coachTimezone, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                           {session.start_time} - {session.end_time}

@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Home, Calendar, Clock, TrendingUp, Target, Settings, BarChart3 } from 'lucide-react'
+import { Home, Calendar, Clock, TrendingUp, Target, Settings, BarChart3, BookOpen, History } from 'lucide-react'
 
 interface DesktopSidebarProps {
   role: 'athlete' | 'coach'
@@ -30,6 +30,8 @@ export function DesktopSidebar({ role }: DesktopSidebarProps) {
   const coachNavItems = [
     { name: 'Dashboard', href: `/dashboard/coach`, icon: Home },
     { name: 'Athletes', href: `/dashboard/coach/athletes`, icon: BarChart3 },
+    { name: 'Journals', href: `/dashboard/coach/journals`, icon: BookOpen },
+    { name: 'Sessions', href: `/dashboard/coach/sessions`, icon: History },
     { name: 'Settings', href: `/dashboard/coach/settings`, icon: Settings },
   ]
 

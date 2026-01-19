@@ -66,7 +66,7 @@ export default async function DashboardLayout({
           {children}
         </div>
       </main>
-      <BottomNav />
+      <BottomNav role={profile.role as 'athlete' | 'coach'} />
     </div>
   )
 }

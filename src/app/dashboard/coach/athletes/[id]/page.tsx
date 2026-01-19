@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase-client'
 import { Database } from '@/types/database'
 import { ArrowLeft, Calendar, Target, TrendingUp, CheckCircle, Clock, Star, BarChart3 } from 'lucide-react'
 import { getFullName } from '@/lib/utils'
+import { formatDateInTimezone } from '@/lib/timezone-utils'
 import BackButton from '@/components/BackButton'
 import { AthleteDetailSkeleton } from '@/components/skeletons/athlete-detail-skeleton'
 
@@ -23,6 +24,7 @@ export default function AthleteDetailPage() {
   const [loading, setLoading] = useState(true)
   const [athlete, setAthlete] = useState<Profile | null>(null)
   const [sessions, setSessions] = useState<TrainingSession[]>([])
+  const [coachTimezone, setCoachTimezone] = useState<string>('UTC')
   const [stats, setStats] = useState({
     totalSessions: 0,
     completedSessions: 0,
@@ -43,6 +45,17 @@ export default function AthleteDetailPage() {
       if (!authSession) {
         router.push('/auth/login')
         return
+      }
+
+      // Get coach's timezone
+      const { data: coachProfile } = await supabase
+        .from('profiles')
+        .select('timezone')
+        .eq('id', authSession.user.id)
+        .single()
+
+      if (coachProfile && 'timezone' in coachProfile && coachProfile.timezone) {
+        setCoachTimezone(coachProfile.timezone as string)
       }
 
       // Verify coach has access to this athlete
@@ -157,7 +170,7 @@ export default function AthleteDetailPage() {
   }
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+    return formatDateInTimezone(dateString, coachTimezone, {
       weekday: 'short',
       month: 'short',
       day: 'numeric'

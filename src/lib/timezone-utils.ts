@@ -40,14 +40,20 @@ export function convertToUserTimezone(date: Date, userTimezone: string): Date {
   }
 }
 
-export function formatDateInTimezone(date: Date, timezone: string, options?: Intl.DateTimeFormatOptions): string {
+export function formatDateInTimezone(date: Date | string, timezone: string, options?: Intl.DateTimeFormatOptions): string {
   try {
+    // Handle string dates (YYYY-MM-DD format from database)
+    // Parse as local date to avoid timezone shift issues
+    const dateObj = typeof date === 'string'
+      ? new Date(date + 'T00:00:00')
+      : date
     return new Intl.DateTimeFormat('en-US', {
       timeZone: timezone,
       ...options
-    }).format(date)
+    }).format(dateObj)
   } catch {
-    return date.toLocaleDateString()
+    const dateObj = typeof date === 'string' ? new Date(date) : date
+    return dateObj.toLocaleDateString()
   }
 }
 
