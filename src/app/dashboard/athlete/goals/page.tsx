@@ -174,8 +174,47 @@ export default function GoalsPage() {
         <div className="space-y-6">
           {upcomingSessions.map((session) => (
             <div key={session.id} className="bg-white shadow-sm rounded-lg border border-gray-200">
-              <div className="p-6 border-b border-gray-200">
-                <div className="flex items-center justify-between">
+              <div className="p-4 sm:p-6 border-b border-gray-200">
+                {/* Mobile Layout */}
+                <div className="flex flex-col space-y-3 sm:hidden">
+                  <div>
+                    <h3 className="text-lg font-medium text-gray-900">
+                      {formatDate(session.scheduled_date)}
+                    </h3>
+                    <div className="flex flex-wrap items-center gap-2 mt-1 text-sm text-gray-500">
+                      <div className="flex items-center space-x-1">
+                        <Clock className="h-4 w-4 flex-shrink-0" />
+                        <span>{new Date(`2000-01-01T${session.start_time}`).toLocaleTimeString('en-US', {
+                          hour: 'numeric',
+                          minute: '2-digit',
+                          hour12: true,
+                        })} - {new Date(`2000-01-01T${session.end_time}`).toLocaleTimeString('en-US', {
+                          hour: 'numeric',
+                          minute: '2-digit',
+                          hour12: true,
+                        })}</span>
+                      </div>
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                        {session.session_type}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-500">
+                      {session.goals.length}/3 goals
+                    </span>
+                    <button
+                      onClick={() => setShowAddGoal(showAddGoal === session.id ? null : session.id)}
+                      className="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded text-white bg-primary-600 hover:bg-primary-700 min-h-[44px]"
+                    >
+                      <Plus className="h-4 w-4 mr-1" />
+                      Add Goal
+                    </button>
+                  </div>
+                </div>
+
+                {/* Desktop Layout */}
+                <div className="hidden sm:flex sm:items-center sm:justify-between">
                   <div>
                     <h3 className="text-lg font-medium text-gray-900">
                       {formatDate(session.scheduled_date)}
@@ -213,7 +252,7 @@ export default function GoalsPage() {
                 </div>
               </div>
 
-              <div className="p-6">
+              <div className="p-4 sm:p-6">
                 {/* Add Goal Form */}
                 {showAddGoal === session.id && (
                   <div className="mb-4 p-4 bg-gray-50 rounded-lg">
@@ -256,19 +295,21 @@ export default function GoalsPage() {
                 {session.goals.length > 0 ? (
                   <div className="space-y-3">
                     {session.goals.map((goal, index) => (
-                      <div key={goal.id} className="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg">
-                        <div className="flex-shrink-0">
-                          <div className="w-6 h-6 rounded-full bg-primary-100 text-primary-600 flex items-center justify-center text-sm font-medium">
-                            {index + 1}
+                      <div key={goal.id} className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 p-3 border border-gray-200 rounded-lg">
+                        <div className="flex items-start sm:items-center space-x-3 flex-1 min-w-0">
+                          <div className="flex-shrink-0">
+                            <div className="w-6 h-6 rounded-full bg-primary-100 text-primary-600 flex items-center justify-center text-sm font-medium">
+                              {index + 1}
+                            </div>
                           </div>
+                          <p className="flex-1 text-sm text-gray-700 break-words">{goal.goal_text}</p>
                         </div>
-                        <p className="flex-1 text-sm text-gray-700">{goal.goal_text}</p>
                         <button
                           onClick={() => handleDeleteGoal(goal.id)}
                           disabled={deletingGoalId === goal.id}
-                          className="flex-shrink-0 px-3 py-2 text-red-600 hover:text-red-900 hover:bg-red-50 text-sm font-medium rounded-md disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px] min-w-[44px] flex items-center justify-center transition-colors"
+                          className="flex-shrink-0 self-end sm:self-center px-3 py-2 text-red-600 hover:text-red-900 hover:bg-red-50 text-sm font-medium rounded-md disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px] min-w-[44px] flex items-center justify-center transition-colors"
                         >
-                          {deletingGoalId === goal.id ? 'Deleting...' : 'Delete'}
+                          {deletingGoalId === goal.id ? '...' : 'Delete'}
                         </button>
                       </div>
                     ))}

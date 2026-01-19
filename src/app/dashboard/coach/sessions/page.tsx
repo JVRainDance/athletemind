@@ -494,11 +494,11 @@ export default function CoachSessionsPage() {
 
               {/* Pagination */}
               {totalPages > 1 && (
-                <div className="flex items-center justify-between mt-6 pt-4 border-t border-gray-200">
-                  <p className="text-sm text-gray-500">
-                    Showing {((currentPage - 1) * ITEMS_PER_PAGE) + 1} to {Math.min(currentPage * ITEMS_PER_PAGE, totalCount)} of {totalCount} sessions
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mt-6 pt-4 border-t border-gray-200">
+                  <p className="text-sm text-gray-500 text-center sm:text-left">
+                    Showing {((currentPage - 1) * ITEMS_PER_PAGE) + 1} to {Math.min(currentPage * ITEMS_PER_PAGE, totalCount)} of {totalCount}
                   </p>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center justify-center gap-2">
                     <Button
                       size="sm"
                       variant="outline"
@@ -506,10 +506,11 @@ export default function CoachSessionsPage() {
                       disabled={currentPage === 1}
                       leftIcon={<ChevronLeft className="h-4 w-4" />}
                     >
-                      Previous
+                      <span className="hidden sm:inline">Previous</span>
+                      <span className="sm:hidden">Prev</span>
                     </Button>
-                    <span className="text-sm text-gray-500 px-3">
-                      Page {currentPage} of {totalPages}
+                    <span className="text-sm text-gray-500 px-2 sm:px-3">
+                      {currentPage}/{totalPages}
                     </span>
                     <Button
                       size="sm"

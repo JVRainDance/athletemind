@@ -16,7 +16,9 @@ import {
   ChevronUp,
   Calendar,
   Filter,
-  RefreshCw
+  RefreshCw,
+  Users,
+  X
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { getFullName } from '@/lib/utils'
@@ -64,10 +66,12 @@ export default function CoachJournalsPage() {
 
   const [loading, setLoading] = useState(true)
   const [sessions, setSessions] = useState<SessionWithDetails[]>([])
+  const [athletes, setAthletes] = useState<Profile[]>([])
   const [coachTimezone, setCoachTimezone] = useState<string>('UTC')
   const [expandedSessions, setExpandedSessions] = useState<Set<string>>(new Set())
   const [dateFilter, setDateFilter] = useState<'today' | 'week' | 'all'>('today')
   const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'completed'>('all')
+  const [selectedAthletes, setSelectedAthletes] = useState<string[]>([])
 
   const loadData = useCallback(async () => {
     setLoading(true)
@@ -97,7 +101,27 @@ export default function CoachJournalsPage() {
         .eq('coach_id', authSession.user.id)
         .eq('status', 'active')
 
-      const athleteIds = (coachAthletes?.map(ca => ca.athlete_id) || []) as string[]
+      const allAthleteIds = (coachAthletes?.map(ca => ca.athlete_id) || []) as string[]
+
+      if (allAthleteIds.length === 0) {
+        setSessions([])
+        setAthletes([])
+        setLoading(false)
+        return
+      }
+
+      // Load athlete profiles for the filter dropdown
+      const { data: athleteProfiles } = await supabase
+        .from('profiles')
+        .select('*')
+        .in('id', allAthleteIds)
+
+      setAthletes(athleteProfiles || [])
+
+      // Apply athlete filter if selected
+      const athleteIds = selectedAthletes.length > 0
+        ? allAthleteIds.filter(id => selectedAthletes.includes(id))
+        : allAthleteIds
 
       if (athleteIds.length === 0) {
         setSessions([])
@@ -161,7 +185,7 @@ export default function CoachJournalsPage() {
     } finally {
       setLoading(false)
     }
-  }, [supabase, router, dateFilter, statusFilter])
+  }, [supabase, router, dateFilter, statusFilter, selectedAthletes])
 
   useEffect(() => {
     loadData()
@@ -217,6 +241,22 @@ export default function CoachJournalsPage() {
     }
     return <Clock className="h-4 w-4 text-gray-400" />
   }
+
+  const toggleAthleteFilter = (athleteId: string) => {
+    setSelectedAthletes(prev =>
+      prev.includes(athleteId)
+        ? prev.filter(id => id !== athleteId)
+        : [...prev, athleteId]
+    )
+  }
+
+  const clearAllFilters = () => {
+    setSelectedAthletes([])
+    setDateFilter('today')
+    setStatusFilter('all')
+  }
+
+  const hasActiveFilters = selectedAthletes.length > 0 || dateFilter !== 'today' || statusFilter !== 'all'
 
   // Calculate summary stats
   const totalSessions = sessions.length
@@ -283,57 +323,133 @@ export default function CoachJournalsPage() {
       </div>
 
       {/* Filters */}
-      <div className="flex flex-wrap gap-3">
-        <div className="flex items-center gap-2">
-          <Filter className="h-4 w-4 text-gray-500" />
-          <span className="text-sm text-gray-600">Filter:</span>
+      <div className="bg-white rounded-lg border border-gray-200 p-4">
+        <div className="flex flex-wrap items-center gap-3 mb-4">
+          <div className="flex items-center gap-2">
+            <Filter className="h-4 w-4 text-gray-500" />
+            <span className="text-sm font-medium text-gray-700">Filters:</span>
+          </div>
+          {hasActiveFilters && (
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={clearAllFilters}
+              className="text-gray-500"
+            >
+              Clear all
+            </Button>
+          )}
         </div>
-        <div className="flex gap-2">
-          <Button
-            size="sm"
-            variant={dateFilter === 'today' ? 'default' : 'outline'}
-            onClick={() => setDateFilter('today')}
-          >
-            Today
-          </Button>
-          <Button
-            size="sm"
-            variant={dateFilter === 'week' ? 'default' : 'outline'}
-            onClick={() => setDateFilter('week')}
-          >
-            This Week
-          </Button>
-          <Button
-            size="sm"
-            variant={dateFilter === 'all' ? 'default' : 'outline'}
-            onClick={() => setDateFilter('all')}
-          >
-            All Recent
-          </Button>
+
+        <div className="flex flex-wrap gap-4">
+          {/* Date Filter */}
+          <div>
+            <label className="block text-xs font-medium text-gray-500 mb-1">Date</label>
+            <div className="flex gap-1">
+              <Button
+                size="sm"
+                variant={dateFilter === 'today' ? 'default' : 'outline'}
+                onClick={() => setDateFilter('today')}
+              >
+                Today
+              </Button>
+              <Button
+                size="sm"
+                variant={dateFilter === 'week' ? 'default' : 'outline'}
+                onClick={() => setDateFilter('week')}
+              >
+                This Week
+              </Button>
+              <Button
+                size="sm"
+                variant={dateFilter === 'all' ? 'default' : 'outline'}
+                onClick={() => setDateFilter('all')}
+              >
+                All Recent
+              </Button>
+            </div>
+          </div>
+
+          {/* Status Filter */}
+          <div>
+            <label className="block text-xs font-medium text-gray-500 mb-1">Status</label>
+            <div className="flex gap-1">
+              <Button
+                size="sm"
+                variant={statusFilter === 'all' ? 'default' : 'outline'}
+                onClick={() => setStatusFilter('all')}
+              >
+                All
+              </Button>
+              <Button
+                size="sm"
+                variant={statusFilter === 'pending' ? 'default' : 'outline'}
+                onClick={() => setStatusFilter('pending')}
+              >
+                Pending
+              </Button>
+              <Button
+                size="sm"
+                variant={statusFilter === 'completed' ? 'default' : 'outline'}
+                onClick={() => setStatusFilter('completed')}
+              >
+                Completed
+              </Button>
+            </div>
+          </div>
+
+          {/* Athlete Filter */}
+          {athletes.length > 0 && (
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">
+                Athletes ({selectedAthletes.length > 0 ? `${selectedAthletes.length} selected` : 'All'})
+              </label>
+              <div className="flex flex-wrap gap-1 max-w-md">
+                {athletes.map((athlete) => (
+                  <button
+                    key={athlete.id}
+                    onClick={() => toggleAthleteFilter(athlete.id)}
+                    className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium transition-colors ${
+                      selectedAthletes.includes(athlete.id)
+                        ? 'bg-primary-100 text-primary-800 border border-primary-300'
+                        : 'bg-gray-100 text-gray-700 border border-gray-200 hover:bg-gray-200'
+                    }`}
+                  >
+                    <Users className="h-3 w-3" />
+                    {athlete.first_name}
+                    {selectedAthletes.includes(athlete.id) && (
+                      <X className="h-3 w-3 ml-0.5" />
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
-        <div className="border-l border-gray-300 pl-3 flex gap-2">
-          <Button
-            size="sm"
-            variant={statusFilter === 'all' ? 'default' : 'outline'}
-            onClick={() => setStatusFilter('all')}
-          >
-            All Status
-          </Button>
-          <Button
-            size="sm"
-            variant={statusFilter === 'pending' ? 'default' : 'outline'}
-            onClick={() => setStatusFilter('pending')}
-          >
-            Pending
-          </Button>
-          <Button
-            size="sm"
-            variant={statusFilter === 'completed' ? 'default' : 'outline'}
-            onClick={() => setStatusFilter('completed')}
-          >
-            Completed
-          </Button>
-        </div>
+
+        {/* Active Filter Tags */}
+        {selectedAthletes.length > 0 && (
+          <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-gray-200">
+            <span className="text-xs text-gray-500">Active filters:</span>
+            {selectedAthletes.map((athleteId) => {
+              const athlete = athletes.find(a => a.id === athleteId)
+              return (
+                <span
+                  key={athleteId}
+                  className="inline-flex items-center gap-1 px-2 py-1 bg-primary-100 text-primary-800 text-xs rounded-full"
+                >
+                  {athlete ? getFullName(athlete.first_name, athlete.last_name) : 'Unknown'}
+                  <button
+                    onClick={() => toggleAthleteFilter(athleteId)}
+                    className="hover:bg-primary-200 rounded-full p-0.5"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </span>
+              )
+            })}
+          </div>
+        )}
       </div>
 
       {/* Sessions Table */}
@@ -362,7 +478,74 @@ export default function CoachJournalsPage() {
                       className="p-4 bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors"
                       onClick={() => toggleExpanded(session.id)}
                     >
-                      <div className="flex items-center justify-between">
+                      {/* Mobile Layout */}
+                      <div className="flex flex-col gap-3 sm:hidden">
+                        <div className="flex items-start justify-between">
+                          <div className="min-w-0 flex-1">
+                            <p className="font-medium text-gray-900 truncate">
+                              {getFullName(session.profiles?.first_name || '', session.profiles?.last_name)}
+                            </p>
+                            <p className="text-sm text-gray-500">
+                              {formatDateInTimezone(session.scheduled_date, coachTimezone, {
+                                weekday: 'short',
+                                month: 'short',
+                                day: 'numeric',
+                              })} at {session.start_time}
+                            </p>
+                          </div>
+                          {isExpanded ? (
+                            <ChevronUp className="h-5 w-5 text-gray-400 flex-shrink-0" />
+                          ) : (
+                            <ChevronDown className="h-5 w-5 text-gray-400 flex-shrink-0" />
+                          )}
+                        </div>
+
+                        {/* Status indicators - wrapped for mobile */}
+                        <div className="flex flex-wrap gap-1.5">
+                          <div
+                            className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
+                              hasCheckin
+                                ? 'bg-green-100 text-green-800'
+                                : 'bg-yellow-100 text-yellow-800'
+                            }`}
+                          >
+                            {hasCheckin ? <CheckCircle className="h-3 w-3" /> : <Clock className="h-3 w-3" />}
+                            <span className="hidden xs:inline">Check-in</span>
+                          </div>
+                          <div
+                            className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
+                              hasGoals ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-600'
+                            }`}
+                          >
+                            <Target className="h-3 w-3" />
+                            {goals.length}/3
+                          </div>
+                          {session.status === 'completed' && (
+                            <div
+                              className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
+                                hasReflection ? 'bg-purple-100 text-purple-800' : 'bg-red-100 text-red-800'
+                              }`}
+                            >
+                              <BookOpen className="h-3 w-3" />
+                              {hasReflection ? 'Done' : 'Missing'}
+                            </div>
+                          )}
+                          <span
+                            className={`px-2 py-1 rounded-full text-xs font-medium ${
+                              session.status === 'completed'
+                                ? 'bg-green-100 text-green-800'
+                                : session.status === 'absent'
+                                ? 'bg-red-100 text-red-800'
+                                : 'bg-gray-100 text-gray-600'
+                            }`}
+                          >
+                            {session.status}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Desktop Layout */}
+                      <div className="hidden sm:flex sm:items-center sm:justify-between">
                         <div className="flex items-center gap-3 min-w-0 flex-1">
                           <div className="min-w-0">
                             <p className="font-medium text-gray-900 truncate">
@@ -380,7 +563,6 @@ export default function CoachJournalsPage() {
 
                         {/* Status indicators */}
                         <div className="flex items-center gap-2">
-                          {/* Check-in status */}
                           <div
                             className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
                               hasCheckin
@@ -397,7 +579,6 @@ export default function CoachJournalsPage() {
                             Check-in
                           </div>
 
-                          {/* Goals status */}
                           <div
                             className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
                               hasGoals
@@ -410,7 +591,6 @@ export default function CoachJournalsPage() {
                             {goals.length}/3
                           </div>
 
-                          {/* Reflection status (only for completed sessions) */}
                           {session.status === 'completed' && (
                             <div
                               className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
@@ -425,7 +605,6 @@ export default function CoachJournalsPage() {
                             </div>
                           )}
 
-                          {/* Session status badge */}
                           <span
                             className={`px-2 py-1 rounded-full text-xs font-medium ${
                               session.status === 'completed'
@@ -438,7 +617,6 @@ export default function CoachJournalsPage() {
                             {session.status}
                           </span>
 
-                          {/* Expand/collapse icon */}
                           {isExpanded ? (
                             <ChevronUp className="h-5 w-5 text-gray-400" />
                           ) : (
@@ -573,10 +751,21 @@ export default function CoachJournalsPage() {
               <BookOpen className="mx-auto h-12 w-12 text-gray-400 mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">No sessions found</h3>
               <p className="text-gray-500">
-                {dateFilter === 'today'
+                {hasActiveFilters
+                  ? 'No sessions match your current filters. Try adjusting them.'
+                  : dateFilter === 'today'
                   ? 'No sessions scheduled for today.'
                   : 'No sessions found for the selected time period.'}
               </p>
+              {hasActiveFilters && (
+                <Button
+                  variant="outline"
+                  onClick={clearAllFilters}
+                  className="mt-4"
+                >
+                  Clear filters
+                </Button>
+              )}
             </div>
           )}
         </div>

@@ -244,9 +244,93 @@ export default function SessionsPage() {
               {sessions.map((session) => (
                 <div
                   key={session.id}
-                  className="border border-gray-200 rounded-lg p-5 hover:bg-gray-50 transition-colors"
+                  className="border border-gray-200 rounded-lg p-4 sm:p-5 hover:bg-gray-50 transition-colors"
                 >
-                  <div className="flex items-center justify-between">
+                  {/* Mobile Layout - Stacked */}
+                  <div className="flex flex-col space-y-3 sm:hidden">
+                    {/* Date and Time Row */}
+                    <div className="flex items-start space-x-3">
+                      <div className="flex-shrink-0 mt-0.5">
+                        {getStatusIcon(session.status)}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium text-gray-900">
+                          {formatDate(session.scheduled_date)}
+                        </p>
+                        <div className="flex items-center space-x-2 text-sm text-gray-500">
+                          <Clock className="h-4 w-4 flex-shrink-0" />
+                          <span className="truncate">{formatTimeInTimezone(new Date(`2000-01-01T${session.start_time}`), userTimezone)} - {formatTimeInTimezone(new Date(`2000-01-01T${session.end_time}`), userTimezone)}</span>
+                        </div>
+                        {session.absence_reason && (
+                          <p className="text-xs text-red-600 mt-1">
+                            Reason: {session.absence_reason}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Status Badges Row */}
+                    <div className="flex flex-wrap gap-2">
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(session.status)}`}>
+                        {session.status}
+                      </span>
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                        {session.session_type}
+                      </span>
+                    </div>
+
+                    {/* Action Buttons Row */}
+                    {(session.status === 'scheduled' || session.status === 'completed') && (
+                      <div className="flex flex-wrap gap-2 pt-1">
+                        {session.status === 'scheduled' && canStartSession(session) && (
+                          <Button
+                            size="sm"
+                            onClick={() => handleStartSession(session.id)}
+                            leftIcon={<Play className="h-3 w-3" />}
+                            className="flex-1 min-w-[80px]"
+                          >
+                            Start
+                          </Button>
+                        )}
+
+                        {session.status === 'scheduled' && (
+                          <>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => setShowAbsenceForm(session.id)}
+                              leftIcon={<AlertCircle className="h-3 w-3" />}
+                              className="border-red-300 text-red-700 bg-red-50 hover:bg-red-100 flex-1 min-w-[80px]"
+                            >
+                              Absent
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleCancelSession(session.id)}
+                              className="flex-1 min-w-[80px]"
+                            >
+                              Cancel
+                            </Button>
+                          </>
+                        )}
+
+                        {session.status === 'completed' && (
+                          <Button
+                            size="sm"
+                            variant="secondary"
+                            onClick={() => router.push(`/dashboard/athlete/sessions/${session.id}`)}
+                            className="w-full"
+                          >
+                            View Details
+                          </Button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Desktop Layout - Horizontal */}
+                  <div className="hidden sm:flex sm:items-center sm:justify-between">
                     <div className="flex items-center space-x-4">
                       {getStatusIcon(session.status)}
                       <div>
@@ -271,7 +355,7 @@ export default function SessionsPage() {
                       <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                         {session.session_type}
                       </span>
-                      
+
                       {/* Action Buttons */}
                       <div className="flex items-center space-x-2">
                         {session.status === 'scheduled' && canStartSession(session) && (

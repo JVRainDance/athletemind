@@ -38,9 +38,9 @@ export default async function SchedulePage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Training Schedule</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Training Schedule</h1>
           <p className="mt-2 text-base text-gray-600">
             Set your weekly training schedule template
           </p>
@@ -58,13 +58,13 @@ export default async function SchedulePage() {
               {schedule.map((scheduleItem) => (
                 <div
                   key={scheduleItem.id}
-                  className="flex items-center justify-between p-4 border border-gray-200 rounded-lg"
+                  className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 border border-gray-200 rounded-lg"
                 >
-                  <div className="flex items-center space-x-4">
+                  <div className="flex items-center space-x-4 min-w-0">
                     <div className="flex-shrink-0">
                       <Calendar className="h-5 w-5 text-gray-400" />
                     </div>
-                    <div>
+                    <div className="min-w-0">
                       <p className="text-sm font-medium text-gray-900">
                         {dayNames[scheduleItem.day_of_week]}
                       </p>
@@ -81,7 +81,7 @@ export default async function SchedulePage() {
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center justify-between sm:justify-end space-x-2 pl-9 sm:pl-0">
                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                       {scheduleItem.session_type}
                     </span>
