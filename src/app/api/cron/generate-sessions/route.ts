@@ -1,6 +1,9 @@
 /**
- * Vercel Cron Job: Generate Training Sessions
- * Runs daily at midnight to generate sessions for the next 7 days
+ * Vercel Cron Job: Generate Training Sessions & Maintenance
+ * Runs daily at midnight to:
+ * 1. Mark overdue sessions as absent
+ * 2. Generate sessions for the next 7 days
+ * 3. Clean up old completed/absent sessions
  */
 
 import { NextRequest, NextResponse } from 'next/server'
@@ -31,7 +34,22 @@ export async function GET(request: NextRequest) {
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
-    // Call the database function to generate sessions
+    // Step 1: Mark overdue sessions as absent
+    // This runs first so we don't have stale scheduled sessions accumulating
+    let overdueCount = 0
+    const { data: overdueResult, error: overdueError } = await supabase.rpc('mark_overdue_sessions_absent')
+
+    if (overdueError) {
+      console.warn('Error marking overdue sessions:', overdueError)
+      // Don't fail the request if this fails
+    } else if (overdueResult && overdueResult.length > 0) {
+      overdueCount = overdueResult[0]?.updated_count || 0
+      if (overdueCount > 0) {
+        console.log(`Marked ${overdueCount} overdue sessions as absent`)
+      }
+    }
+
+    // Step 2: Generate new sessions for the next 7 days
     const { error } = await supabase.rpc('generate_sessions_from_schedules')
 
     if (error) {
@@ -42,7 +60,7 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Optional: Also run cleanup of old sessions
+    // Step 3: Clean up old sessions (30+ days old)
     const { error: cleanupError } = await supabase.rpc('cleanup_old_sessions')
 
     if (cleanupError) {
@@ -52,7 +70,8 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: 'Sessions generated successfully',
+      message: 'Session maintenance completed successfully',
+      overdueSessionsMarked: overdueCount,
       timestamp: new Date().toISOString(),
     })
   } catch (error) {
